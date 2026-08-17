@@ -32,7 +32,14 @@
     html=html.replace('document.getElementById("lastFertilized").value = plant?.lastFertilized || "";', 'document.getElementById("lastFertilized").value = plant?.lastFertilized || "";\n  document.getElementById("numberLeaves").value = plant?.numberLeaves ?? "";\n  document.getElementById("leafEye").checked = !!plant?.leafEye;');
     html=html.replace('lastFertilized: document.getElementById("lastFertilized").value,', 'lastFertilized: document.getElementById("lastFertilized").value,\n    numberLeaves: document.getElementById("numberLeaves").value ? Number(document.getElementById("numberLeaves").value) : "",\n    leafEye: document.getElementById("leafEye").checked,');
     html=html.replace('["Health", p.health || "Good"]', '["Health", p.health || "Good"],\n    ["Number of Leaves", p.numberLeaves],\n    ["Leaf 👀", p.leafEye ? "Yes" : "No"]');
-    localStorage.setItem('plantCollectionTracker_profiles_v8',JSON.stringify(plants));
+
+    // Seed the collection only on first use. Previously this ran on every page load,
+    // which overwrote user edits (including uploaded photos) with the CSV defaults.
+    const storageKey='plantCollectionTracker_profiles_v8';
+    if(!localStorage.getItem(storageKey)){
+      localStorage.setItem(storageKey,JSON.stringify(plants));
+    }
+
     document.open();document.write(html);document.close();
   }catch(err){document.body.innerHTML=`<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>${err.message}</p></div>`;}
 })();
