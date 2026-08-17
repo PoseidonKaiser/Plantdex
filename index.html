@@ -4,9 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plantdex</title>
-<style>
-body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f4f7f2;color:#183126;display:grid;place-items:center;min-height:100vh}.loading{background:#fff;padding:30px 34px;border-radius:20px;box-shadow:0 14px 34px rgba(32,67,49,.10);text-align:center}.leaf{font-size:2rem}
-</style>
+<style>body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f4f7f2;color:#183126;display:grid;place-items:center;min-height:100vh}.loading{background:#fff;padding:30px 34px;border-radius:20px;box-shadow:0 14px 34px rgba(32,67,49,.10);text-align:center}.leaf{font-size:2rem}</style>
 </head>
 <body>
 <div class="loading"><div class="leaf">🌿</div><strong>Loading Plantdex…</strong></div>
@@ -16,14 +14,27 @@ body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f4f7f2;
     const files=Array.from({length:6},(_,i)=>`chunks/part-${String(i).padStart(2,'0')}.txt`);
     const responses=await Promise.all(files.map(f=>fetch(f,{cache:'no-store'})));
     if(responses.some(r=>!r.ok)) throw new Error('A Plantdex source file could not be loaded.');
-    const parts=await Promise.all(responses.map(r=>r.text()));
-    const html=parts.join('');
-    document.open();
-    document.write(html);
-    document.close();
-  }catch(err){
-    document.body.innerHTML=`<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>${err.message}</p></div>`;
-  }
+    let html=(await Promise.all(responses.map(r=>r.text()))).join('');
+    const csv=await (await fetch('data/Plant%20Collection(4).csv',{cache:'no-store'})).text();
+    const rows=csv.split(/\r?\n/).slice(1).map(line=>line.split(','));
+    const dataRows=rows.filter(c=>c[2]&&c[2].trim());
+    const importedMatch=html.match(/const IMPORTED_PLANTS = (\[.*?\]);\nlet plants/s);
+    if(!importedMatch) throw new Error('Plant database could not be located.');
+    const plants=JSON.parse(importedMatch[1]);
+    const genusMap={Philodendron:'Philodendron / Araceae',Monstera:'Monstera / Araceae',Hoya:'Hoya / Apocynaceae',Suculents:'Succulent',Pothos:'Epipremnum / Araceae',Ferns:'Fern',Fruiting:'Edible / Fruiting',Misc:'Miscellaneous',Syngonium:'Syngonium / Araceae',Alocasia:'Alocasia / Araceae'};
+    const pad=n=>String(n).padStart(2,'0');
+    dataRows.forEach((c,i)=>{if(!plants[i])return;const p=plants[i];p.genus=genusMap[(c[1]||'').trim()]||p.genus||'';p.type=(c[2]||'').trim();p.nickname=(c[4]||'').trim();p.source=(c[5]||'').trim();const when=(c[6]||'').trim();if(when){const [m,d]=when.split('/').map(Number);if(m&&d)p.dateAcquired=`2026-${pad(m)}-${pad(d)}`;}p.price=(c[7]||'').trim();p.location=(c[8]||'').trim();p.potSize=(c[9]||'').trim();p.numberLeaves=(c[10]||'').trim()?Number(c[10]):'';p.leafEye=((c[11]||'').trim().toUpperCase()==='TRUE');});
+    html=html.replace(importedMatch[1],JSON.stringify(plants));
+    html=html.replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8');
+    html=html.replace('.plant-name{font-weight:800}', '.plant-name{font-weight:800}\n    .photo-link{border:0;background:transparent;padding:0;cursor:pointer;border-radius:12px}');
+    html=html.replace('<td>${p.photo ? `<img class="plant-photo" src="${p.photo}" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</td>', '<td><button class="photo-link" type="button" onclick="viewProfile(\'${p.id}\')" title="Open profile">${p.photo ? `<img class="plant-photo" src="${p.photo}" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</button></td>');
+    html=html.replace('<label><span>Last Fertilized</span><input id="lastFertilized" type="date"></label>', '<label><span>Last Fertilized</span><input id="lastFertilized" type="date"></label>\n        <label><span>Number of Leaves</span><input id="numberLeaves" type="number" min="0" placeholder="e.g. 4"></label>\n        <label><span>Leaf 👀</span><input id="leafEye" type="checkbox" style="width:auto;transform:scale(1.25)"></label>');
+    html=html.replace('document.getElementById("lastFertilized").value = plant?.lastFertilized || "";', 'document.getElementById("lastFertilized").value = plant?.lastFertilized || "";\n  document.getElementById("numberLeaves").value = plant?.numberLeaves ?? "";\n  document.getElementById("leafEye").checked = !!plant?.leafEye;');
+    html=html.replace('lastFertilized: document.getElementById("lastFertilized").value,', 'lastFertilized: document.getElementById("lastFertilized").value,\n    numberLeaves: document.getElementById("numberLeaves").value ? Number(document.getElementById("numberLeaves").value) : "",\n    leafEye: document.getElementById("leafEye").checked,');
+    html=html.replace('["Health", p.health || "Good"]', '["Health", p.health || "Good"],\n    ["Number of Leaves", p.numberLeaves],\n    ["Leaf 👀", p.leafEye ? "Yes" : "No"]');
+    localStorage.setItem('plantCollectionTracker_profiles_v8',JSON.stringify(plants));
+    document.open();document.write(html);document.close();
+  }catch(err){document.body.innerHTML=`<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>${err.message}</p></div>`;}
 })();
 </script>
 </body>
