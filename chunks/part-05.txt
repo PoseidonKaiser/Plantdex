@@ -190,8 +190,112 @@ document.getElementById("addLogBtn").addEventListener("click", ()=>{
   renderProfile();
 });
 
+/* Plantdex permanent profile links, NFC + QR support */
+function plantDisplayId(p){
+  let h = 2166136261;
+  const s = String(p?.id || "plant");
+  for(let i=0;i<s.length;i++){
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h,16777619);
+  }
+  return "PD-" + (h >>> 0).toString(36).toUpperCase().padStart(7,"0").slice(-7);
+}
+
+function plantProfileUrl(p){
+  const u = new URL(window.location.href);
+  u.search = "";
+  u.hash = "";
+  u.searchParams.set("plant", p.id);
+  return u.toString();
+}
+
+function renderNfcCard(){
+  const p = profilePlant();
+  if(!p) return;
+  const grid = document.querySelector(".profile-grid");
+  if(!grid) return;
+  let card = document.getElementById("nfcProfileCard");
+  if(!card){
+    card = document.createElement("div");
+    card.id = "nfcProfileCard";
+    card.className = "profile-card";
+    grid.appendChild(card);
+  }
+  const url = plantProfileUrl(p);
+  const qr = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&qzone=4&data=${encodeURIComponent(url)}`;
+  card.innerHTML = `
+    <h3>🏷️ NFC / QR Profile</h3>
+    <div style="display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:18px;align-items:center">
+      <img src="${qr}" width="220" height="220" alt="QR code for ${esc(p.nickname || p.type || 'plant')} profile" style="width:100%;max-width:220px;border-radius:12px;border:1px solid var(--line);background:white;padding:8px">
+      <div>
+        <div style="font-size:.8rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em">Plant ID</div>
+        <div style="font-size:1.35rem;font-weight:850;margin:4px 0 14px">${plantDisplayId(p)}</div>
+        <div style="font-size:.8rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em">Permanent profile URL</div>
+        <div style="word-break:break-all;margin:5px 0 12px">${esc(url)}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="primary" type="button" onclick="copyPlantProfileUrl()">Copy NFC Link</button>
+          <a class="secondary" href="${qr}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;border-radius:12px;padding:11px 15px;font-weight:700">Open QR</a>
+        </div>
+        <div class="note" style="margin-top:12px">Write the permanent profile URL to an NFC tag as a URL/URI record. Tapping the tag will open this exact plant profile.</div>
+      </div>
+    </div>`;
+}
+
+window.copyPlantProfileUrl = async () => {
+  const p = profilePlant(); if(!p) return;
+  const url = plantProfileUrl(p);
+  try{
+    await navigator.clipboard.writeText(url);
+    alert("Plant NFC link copied.");
+  }catch{
+    const input=document.createElement("textarea");
+    input.value=url;document.body.appendChild(input);input.select();document.execCommand("copy");input.remove();
+    alert("Plant NFC link copied.");
+  }
+};
+
+const baseViewProfile = window.viewProfile;
+window.viewProfile = id => {
+  baseViewProfile(id);
+  const p = profilePlant();
+  if(p){
+    const url = new URL(window.location.href);
+    url.searchParams.set("plant", p.id);
+    history.replaceState({plant:p.id},"",url);
+    renderNfcCard();
+  }
+};
+
+const baseCloseProfile = window.closeProfile;
+window.closeProfile = () => {
+  baseCloseProfile();
+  const url = new URL(window.location.href);
+  url.searchParams.delete("plant");
+  history.replaceState({},"",url);
+};
+
+/* Any plant photo/placeholder in the collection now opens that row's profile. */
+document.addEventListener("click", e => {
+  const photo = e.target.closest(".plant-photo,.photo-placeholder");
+  if(!photo) return;
+  const row = photo.closest("tr");
+  const profileBtn = row ? [...row.querySelectorAll("button")].find(b => b.textContent.trim() === "Profile") : null;
+  if(profileBtn){ e.preventDefault(); profileBtn.click(); }
+});
+
+document.addEventListener("keydown", e => {
+  if((e.key === "Enter" || e.key === " ") && e.target.matches(".plant-photo,.photo-placeholder")){
+    e.preventDefault(); e.target.click();
+  }
+});
 
 render();
+
+/* Deep-link support for NFC tags and QR codes. */
+const requestedPlantId = new URLSearchParams(window.location.search).get("plant");
+if(requestedPlantId && plants.some(p => p.id === requestedPlantId)){
+  window.viewProfile(requestedPlantId);
+}
 </script>
 </body>
 </html>
