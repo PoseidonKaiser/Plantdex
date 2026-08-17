@@ -193,4 +193,73 @@
     <section class="stats">
       <div class="stat"><div class="num" id="totalPlants">0</div><div class="label">Plants</div></div>
       <div class="stat"><div class="num" id="locationsCount">0</div><div class="label">Locations</div></div>
-      <div class="stat"><div class="num" id="recentCoun
+      <div class="stat"><div class="num" id="recentCount">0</div><div class="label">Acquired in last 30 days</div></div>
+      <div class="stat"><div class="num" id="repotDueCount">0</div><div class="label">12+ months since repot</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <input class="search" id="search" placeholder="Search type, sub genre, nickname, or location…" />
+        <select id="locationFilter"><option value="">All locations</option></select>
+        <select id="sortBy">
+          <option value="nickname">Sort: Nickname</option>
+          <option value="type">Sort: Plant type</option>
+          <option value="acquired_desc">Sort: Newest acquired</option>
+          <option value="repot_oldest">Sort: Longest since repot</option>
+          <option value="pot">Sort: Pot size</option>
+        </select>
+        <button class="secondary" id="clearFilters">Clear</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Photo</th>
+              <th>★</th>
+              <th>Plant Type</th>
+              <th>Genus / Family</th>
+              <th>Cultivar / Variety</th>
+              <th>Sub Genre</th>
+              <th>Nickname</th>
+              <th>Date Acquired</th>
+              <th>Location</th>
+              <th>Acquired From</th>
+              <th>Price</th>
+              <th>Rarity</th>
+              <th>Qty</th>
+              <th>Health</th>
+              <th>Pot Size</th>
+              <th>Last Repot</th>
+              <th>Since Repot</th>
+              <th>Last Watered</th>
+              <th>Last Fertilized</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="plantRows"></tbody>
+        </table>
+        <div class="empty" id="emptyState">No plants yet. Add your first one to get started 🌱</div>
+      </div>
+      <div class="note">Your data is stored in this browser using local storage. Rarity was reviewed plant-by-plant for the current U.S. houseplant retail/collector market. Ratings reflect present availability rather than historical hype or original launch prices. Quick Water and Feed buttons automatically update the maintenance date and history. Use “Export Backup” periodically if you want a portable copy.</div>
+    </section>
+
+    <section class="profile-shell" id="profileShell">
+      <div class="profile-header" id="profileHeader"></div>
+      <div class="profile-grid">
+        <div class="profile-card">
+          <h3>Plant Details</h3>
+          <div class="kv" id="profileDetails"></div>
+        </div>
+
+        <div class="profile-card">
+          <h3>Care Snapshot</h3>
+          <div class="kv" id="profileCare"></div>
+        </div>
+
+        <div class="profile-card">
+          <h3>Photo Timeline</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <input id="galleryPhoto" type="file" accept="image/*">
+            <input id="galleryDate" type="date">
+            <button class="primary" type=
