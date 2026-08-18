@@ -19,9 +19,11 @@ function doGet(e) {
   var html;
   if (plantId) {
     var plant = plants.find(function(p) { return String(p.ID) === String(plantId); });
-    html = plant ? renderPlantProfile_(plant) : renderNotFound_(plantId);
+    var baseUrl = ScriptApp.getService().getUrl();
+    html = plant ? renderPlantProfile_(plant, baseUrl) : renderNotFound_(plantId);
   } else {
-    html = renderIndex_(plants);
+    var baseUrl = ScriptApp.getService().getUrl();
+    html = renderIndex_(plants, baseUrl);
   }
 
   return HtmlService.createHtmlOutput(html)
@@ -54,7 +56,7 @@ function getPlants_(sheet) {
 }
 
 /** Render the full collection as a grouped index page */
-function renderIndex_(plants) {
+function renderIndex_(plants, baseUrl) {
   // Group by Category
   var groups = {};
   var order = [];
@@ -72,7 +74,7 @@ function renderIndex_(plants) {
     groups[cat].forEach(function(p) {
       body += '<tr>' +
         '<td style="color:#5a7a65;font-size:.85em">' + esc_(p['ID']) + '</td>' +
-        '<td><a href="?plantId=' + esc_(p['ID']) + '">' + esc_(p['Nickname'] || p['Type'] || '—') + '</a></td>' +
+        '<td><a href="' + baseUrl + '?plantId=' + esc_(p['ID']) + '">' + esc_(p['Nickname'] || p['Type'] || '—') + '</a></td>' +
         '<td>' + esc_(p['Type'] || '') + '</td>' +
         '<td>' + esc_(p['Location'] || '') + '</td>' +
         '</tr>';
@@ -84,7 +86,7 @@ function renderIndex_(plants) {
 }
 
 /** Render a single plant profile card */
-function renderPlantProfile_(p) {
+function renderPlantProfile_(p, baseUrl) {
   var fields = [
     ['ID',              p['ID']],
     ['Category',        p['Category']],
@@ -109,7 +111,7 @@ function renderPlantProfile_(p) {
   var title = p['Nickname'] || p['Type'] || 'Plant';
 
   return page_(esc_(title) + ' — Plantdex',
-    '<a href="?" class="back">← All Plants</a>' +
+    '<a href="' + baseUrl + '" class="back">← All Plants</a>' +
     '<h1>' + esc_(title) + '</h1>' +
     '<p class="subtitle">' + esc_(p['Type'] || '') + (p['Category'] ? ' · ' + esc_(p['Category']) : '') + '</p>' +
     '<table class="profile"><tbody>' + rows + '</tbody></table>'
