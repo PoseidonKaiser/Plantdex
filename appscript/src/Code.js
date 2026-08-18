@@ -2,7 +2,13 @@
 // Bound to: PlantDex Google Sheet
 var SPREADSHEET_ID = '1Ygcuetl3BpzlYt7fThD75Z9pDVyptPBeDkakWXSyJm0';
 var SHEET_NAME = 'Plants';
-var ALLOWED_EDITORS = ['stephen@golub.io', 'ceasarromero@gmail.com'];
+function getAllowedEditors_() {
+  try {
+    var val = PropertiesService.getScriptProperties().getProperty('ALLOWED_EDITORS');
+    if (!val) return [];
+    return val.split(',').map(function(e) { return e.trim().toLowerCase(); });
+  } catch(ex) { return []; }
+}
 
 /**
  * Web App entry point — serves the full SPA for every request.
@@ -14,7 +20,7 @@ function doGet(e) {
   var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   var plants = getPlants_(sheet);
   var canEdit = false;
-  try { canEdit = ALLOWED_EDITORS.indexOf(Session.getActiveUser().getEmail()) !== -1; } catch(ex) {}
+  try { canEdit = getAllowedEditors_().indexOf(Session.getActiveUser().getEmail().toLowerCase()) !== -1; } catch(ex) {}
   var baseUrl = ScriptApp.getService().getUrl();
   return HtmlService.createHtmlOutput(renderApp_(plants, baseUrl, initialPlantId, canEdit))
     .setTitle('Plantdex')
@@ -106,8 +112,8 @@ function addPlant(payload) {
 
 function assertCanWrite_() {
   var email = '';
-  try { email = Session.getActiveUser().getEmail(); } catch(ex) {}
-  if (ALLOWED_EDITORS.indexOf(email) === -1) throw new Error('Not authorized to edit.');
+  try { email = Session.getActiveUser().getEmail().toLowerCase(); } catch(ex) {}
+  if (getAllowedEditors_().indexOf(email) === -1) throw new Error('Not authorized to edit.');
 }
 
 function writeFields_(sheet, rowIndex, headers, fields) {
