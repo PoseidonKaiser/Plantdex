@@ -20,7 +20,7 @@ function doGet(e) {
   if (plantId) {
     var plant = plants.find(function(p) { return String(p.ID) === String(plantId); });
     var baseUrl = ScriptApp.getService().getUrl();
-    html = plant ? renderPlantProfile_(plant, baseUrl) : renderNotFound_(plantId);
+    html = plant ? renderPlantProfile_(plant, baseUrl) : renderNotFound_(plantId, baseUrl);
   } else {
     var baseUrl = ScriptApp.getService().getUrl();
     html = renderIndex_(plants, baseUrl);
@@ -74,7 +74,7 @@ function renderIndex_(plants, baseUrl) {
     groups[cat].forEach(function(p) {
       body += '<tr>' +
         '<td style="color:#5a7a65;font-size:.85em">' + esc_(p['ID']) + '</td>' +
-        '<td><a href="' + baseUrl + '?plantId=' + esc_(p['ID']) + '">' + esc_(p['Nickname'] || p['Type'] || '—') + '</a></td>' +
+        '<td><a href="#" onclick="top.location.href=\'' + baseUrl + '?plantId=' + esc_(p['ID']) + '\';return false;">' + esc_(p['Nickname'] || p['Type'] || '—') + '</a></td>' +
         '<td>' + esc_(p['Type'] || '') + '</td>' +
         '<td>' + esc_(p['Location'] || '') + '</td>' +
         '</tr>';
@@ -111,18 +111,18 @@ function renderPlantProfile_(p, baseUrl) {
   var title = p['Nickname'] || p['Type'] || 'Plant';
 
   return page_(esc_(title) + ' — Plantdex',
-    '<a href="' + baseUrl + '" class="back">← All Plants</a>' +
+    '<a href="#" onclick="top.location.href=\'' + baseUrl + '\';return false;" class="back">← All Plants</a>' +
     '<h1>' + esc_(title) + '</h1>' +
     '<p class="subtitle">' + esc_(p['Type'] || '') + (p['Category'] ? ' · ' + esc_(p['Category']) : '') + '</p>' +
     '<table class="profile"><tbody>' + rows + '</tbody></table>'
   );
 }
 
-function renderNotFound_(id) {
+function renderNotFound_(id, baseUrl) {
   return page_('Not Found — Plantdex',
     '<h1>🌱 Plant not found</h1>' +
     '<p>No plant with ID <strong>' + esc_(String(id)) + '</strong>.</p>' +
-    '<p><a href="?">← Back to collection</a></p>'
+    '<p><a href="#" onclick="top.location.href=\'' + baseUrl + '\';return false;">← Back to collection</a></p>'
   );
 }
 
