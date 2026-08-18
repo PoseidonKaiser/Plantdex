@@ -23,14 +23,61 @@ function loadSdk(){return new Promise((resolve,reject)=>{
   s.onload=resolve; s.onerror=()=>reject(new Error('Supabase library could not load')); document.head.appendChild(s);
 });}
 function dataUrlToBlob(dataUrl){const parts=dataUrl.split(',');const meta=parts[0],b64=parts[1];const mime=(meta.match(/data:(.*?);/)||[])[1]||'image/jpeg';const bytes=atob(b64);const arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);return new Blob([arr],{type:mime});}
+function safeSegment(v){return String(v==null?'':v).replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)||'item';}
 async function signedPhoto(path){if(!path)return '';const {data,error}=await sb.storage.from('plantdex-photos').createSignedUrl(path,604800);return error?'':data.signedUrl;}
+async function uploadBlobAt(dataUrl,pathStem){const blob=dataUrlToBlob(dataUrl);const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');const path=pathStem+'.'+ext;const {error}=await sb.storage.from('plantdex-photos').upload(path,blob,{upsert:true,contentType:blob.type});if(error)throw error;return path;}
 async function uploadPhoto(p){
   const knownPath=p.photoPath||cloudPhotoPaths.get(String(p.id))||'';
+  if(p.removePhotoCloud){
+    if(knownPath){const {error}=await sb.storage.from('plantdex-photos').remove([knownPath]);if(error)console.warn('Could not remove old profile photo',error);}
+    cloudPhotoPaths.delete(String(p.id));p.photoPath='';p.photo='';delete p.removePhotoCloud;return '';
+  }
   if(!p.photo||!p.photo.startsWith('data:')){if(knownPath)p.photoPath=knownPath;return knownPath;}
-  const blob=dataUrlToBlob(p.photo);const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');const safe=String(p.id||Date.now()).replace(/[^a-zA-Z0-9_-]/g,'_');const path=cloudUser.id+'/'+safe+'/main.'+ext;
-  const {error}=await sb.storage.from('plantdex-photos').upload(path,blob,{upsert:true,contentType:blob.type});if(error)throw error;
+  const path=await uploadBlobAt(p.photo,cloudUser.id+'/'+safeSegment(p.id||Date.now())+'/main');
   cloudPhotoPaths.set(String(p.id),path);p.photoPath=path;p.photo=await signedPhoto(path);return path;
 }
+
+/* Photo Timeline / gallery images live in Storage while date/note metadata stays in JSONB. */
+async function prepareGalleryNode(node,oldPaths,stem){
+  if(typeof node==='string'){
+    if(node.startsWith('data:image/')){const path=await uploadBlobAt(node,stem);return {clean:'',paths:path};}
+    if(typeof oldPaths==='string'&&oldPaths){return {clean:'',paths:oldPaths};}
+    return {clean:node,paths:null};
+  }
+  if(Array.isArray(node)){
+    const clean=[],paths=[];
+    for(let i=0;i<node.length;i++){
+      const r=await prepareGalleryNode(node[i],Array.isArray(oldPaths)?oldPaths[i]:null,stem+'/'+i);
+      clean.push(r.clean);paths.push(r.paths);
+    }
+    return {clean,paths};
+  }
+  if(node&&typeof node==='object'){
+    const clean={},paths={};
+    for(const [k,v] of Object.entries(node)){
+      const r=await prepareGalleryNode(v,oldPaths&&typeof oldPaths==='object'?oldPaths[k]:null,stem+'/'+safeSegment(k));
+      clean[k]=r.clean;paths[k]=r.paths;
+    }
+    return {clean,paths};
+  }
+  return {clean:node,paths:null};
+}
+async function prepareGallery(p){
+  const gallery=Array.isArray(p.gallery)?p.gallery:[];
+  return prepareGalleryNode(gallery,p.galleryCloudPaths||[],cloudUser.id+'/'+safeSegment(p.id||Date.now())+'/timeline');
+}
+async function hydrateGalleryNode(node,paths){
+  if(typeof paths==='string'&&paths)return await signedPhoto(paths);
+  if(Array.isArray(node)){
+    const out=[];for(let i=0;i<node.length;i++)out.push(await hydrateGalleryNode(node[i],Array.isArray(paths)?paths[i]:null));return out;
+  }
+  if(node&&typeof node==='object'){
+    const out={};for(const [k,v] of Object.entries(node))out[k]=await hydrateGalleryNode(v,paths&&typeof paths==='object'?paths[k]:null);return out;
+  }
+  return node;
+}
+async function hydrateGallery(p){p.gallery=await hydrateGalleryNode(Array.isArray(p.gallery)?p.gallery:[],p.galleryCloudPaths||[]);return p;}
+
 function localSnapshot(){try{return JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]');}catch(e){return [];}}
 function rememberLocal(){lastLocalJson=localStorage.getItem(LOCAL_KEY)||'';}
 async function syncLocalPhotos(){
@@ -40,12 +87,7 @@ async function syncLocalPhotos(){
   syncing=true;
   try{
     for(const local of locals){
-      const blob=dataUrlToBlob(local.photo);
-      const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');
-      const safe=String(local.id).replace(/[^a-zA-Z0-9_-]/g,'_');
-      const path=cloudUser.id+'/'+safe+'/main.'+ext;
-      const {error:uploadError}=await sb.storage.from('plantdex-photos').upload(path,blob,{upsert:true,contentType:blob.type});
-      if(uploadError)throw uploadError;
+      const path=await uploadBlobAt(local.photo,cloudUser.id+'/'+safeSegment(local.id)+'/main');
       const {data:rows,error:readError}=await sb.from('plantdex_plants').select('data').eq('local_id',String(local.id)).limit(1);
       if(readError)throw readError;
       const existing=(rows&&rows[0]&&rows[0].data)||{};
@@ -66,13 +108,18 @@ async function syncNow(){
   try{
     for(const p of plants){
       const path=await uploadPhoto(p);
-      const clean=Object.assign({},p,{photo:'',photoPath:path||p.photoPath||cloudPhotoPaths.get(String(p.id))||''});
+      const galleryResult=await prepareGallery(p);
+      const clean=Object.assign({},p,{photo:'',photoPath:path||'',gallery:galleryResult.clean,galleryCloudPaths:galleryResult.paths});
+      delete clean.removePhotoCloud;
       const {error}=await sb.from('plantdex_plants').upsert({user_id:cloudUser.id,local_id:String(p.id),data:clean,photo_path:path||null},{onConflict:'user_id,local_id'});
       if(error)throw error;
-      if(path)cloudPhotoPaths.set(String(p.id),path);
+      if(path)cloudPhotoPaths.set(String(p.id),path);else cloudPhotoPaths.delete(String(p.id));
+      p.photoPath=path||'';
+      p.galleryCloudPaths=galleryResult.paths;
+      p.gallery=await hydrateGalleryNode(galleryResult.clean,galleryResult.paths);
     }
-    originalSavePlants();rememberLocal();status('☁️ Synced');
-  }catch(e){console.error(e);status('⚠️ Sync issue — local copy kept');}
+    originalSavePlants();rememberLocal();if(typeof render==='function')render();status('☁️ Synced');
+  }catch(e){console.error('Plantdex sync failed',e);status('⚠️ Sync issue — local copy kept');}
   finally{syncing=false;}
 }
 function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(async()=>{await syncLocalPhotos();await syncNow();},350);}
@@ -86,10 +133,11 @@ async function loadCloud(){
   if(error)throw error;
   if(data.length){
     plants=await Promise.all(data.map(async row=>{
-      const p=Object.assign({},row.data||{},{id:row.local_id});
+      let p=Object.assign({},row.data||{},{id:row.local_id});
       p.photoPath=row.photo_path||p.photoPath||'';
       if(p.photoPath)cloudPhotoPaths.set(String(row.local_id),p.photoPath);
       p.photo=await signedPhoto(p.photoPath);
+      p=await hydrateGallery(p);
       return p;
     }));
     originalSavePlants();rememberLocal();render();status('☁️ Synced');
