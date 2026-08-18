@@ -26,6 +26,7 @@ function collectLocalPhotos(){
     seen.add(key);
     found.push({id:p.id||'',type:p.type||'',nickname:p.nickname||'',photo:p.photo});
   }
+  try{if(typeof plants!=='undefined'&&Array.isArray(plants))plants.forEach(addPlant);}catch(e){}
   try{if(Array.isArray(window.plants))window.plants.forEach(addPlant);}catch(e){}
   for(let i=0;i<localStorage.length;i++){
     const k=localStorage.key(i);
@@ -74,11 +75,7 @@ async function uploadCapturedPhotos(){
 }
 async function uploadPhoto(p){if(!p.photo||!p.photo.startsWith('data:'))return p.photoPath||'';const blob=dataUrlToBlob(p.photo);const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');const safe=String(p.id||Date.now()).replace(/[^a-zA-Z0-9_-]/g,'_');const path=cloudUser.id+'/'+safe+'/main.'+ext;const {error}=await sb.storage.from('plantdex-photos').upload(path,blob,{upsert:true,contentType:blob.type});if(error)throw error;p.photoPath=path;p.photo=await signedPhoto(path);return path;}
 async function syncNow(){if(!cloudUser||syncing)return;syncing=true;status('☁️ Syncing…');try{for(const p of plants){const path=await uploadPhoto(p);const clean=Object.assign({},p,{photo:'',photoPath:path||p.photoPath||''});const {error}=await sb.from('plantdex_plants').upsert({user_id:cloudUser.id,local_id:String(p.id),data:clean,photo_path:path||null},{onConflict:'user_id,local_id'});if(error)throw error;}originalSavePlants();status('☁️ Synced');}catch(e){console.error(e);status('⚠️ Sync issue — local copy kept');}finally{syncing=false;}}
-window.savePlants=function(){
-  capturedLocalPhotos=collectLocalPhotos();
-  originalSavePlants();
-  if(cloudUser){clearTimeout(syncTimer);syncTimer=setTimeout(async()=>{await uploadCapturedPhotos();await syncNow();},500);}
-};
+window.savePlants=function(){capturedLocalPhotos=collectLocalPhotos();originalSavePlants();if(cloudUser){clearTimeout(syncTimer);syncTimer=setTimeout(async()=>{await uploadCapturedPhotos();await syncNow();},500);}};
 async function loadCloud(){
   status('☁️ Loading…');
   capturedLocalPhotos=collectLocalPhotos();
@@ -92,12 +89,14 @@ async function loadCloud(){
     if(!capturedLocalPhotos.length)status('☁️ Synced');
   }else{status('☁️ Migrating local collection…');await syncNow();}
 }
-function startPhotoWatch(){if(photoWatch)clearInterval(photoWatch);photoWatch=setInterval(async()=>{if(!cloudUser||syncing)return;const fresh=collectLocalPhotos();if(fresh.length){capturedLocalPhotos=fresh;await uploadCapturedPhotos();}},4000);}
+function startPhotoWatch(){if(photoWatch)clearInterval(photoWatch);photoWatch=setInterval(async()=>{if(!cloudUser||syncing)return;const fresh=collectLocalPhotos();if(fresh.length){capturedLocalPhotos=fresh;await uploadCapturedPhotos();}},2000);}
 async function refreshAuth(){const {data:{session}}=await sb.auth.getSession();cloudUser=session?.user||null;setAuthUi(!!cloudUser);if(recoveryMode)return;if(cloudUser){capturedLocalPhotos=collectLocalPhotos();startPhotoWatch();await loadCloud();}else status('Local mode — sign in to sync');}
 async function signIn(){const email=document.getElementById('cloudEmail').value.trim();const password=document.getElementById('cloudPassword').value;if(!email||!password)return alert('Enter your email and password.');status('Signing in…');const {error}=await sb.auth.signInWithPassword({email,password});if(error){status('Sign-in failed');alert(error.message);}}
 async function signUp(){const email=document.getElementById('cloudEmail').value.trim();const password=document.getElementById('cloudPassword').value;if(!email||password.length<6)return alert('Enter your email and a password of at least 6 characters.');status('Creating account…');const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:'https://poseidonkaiser.github.io/Plantdex/'}});if(error){status('Could not create account');alert(error.message);return;}if(data.session){status('Account created — syncing…');await refreshAuth();}else status('Account created. Check your email once to confirm it, then sign in.');}
 async function forgotPassword(){const email=document.getElementById('cloudEmail').value.trim();if(!email)return alert('Enter your email first.');status('Sending reset email…');const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://poseidonkaiser.github.io/Plantdex/'});if(error){status('Could not send reset email');alert(error.message);}else status('Password reset email sent. Open it once the email rate limit clears.');}
 async function setNewPassword(){const password=document.getElementById('cloudPassword').value;if(password.length<6)return alert('Use a password of at least 6 characters.');status('Saving new password…');const {error}=await sb.auth.updateUser({password});if(error){status('Could not update password');alert(error.message);return;}recoveryMode=false;status('Password updated — syncing…');await refreshAuth();}
+function schedulePhotoScan(){[250,900,2200].forEach(ms=>setTimeout(async()=>{if(!cloudUser||syncing)return;capturedLocalPhotos=collectLocalPhotos();if(capturedLocalPhotos.length)await uploadCapturedPhotos();},ms));}
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.tagName==='INPUT'&&String(t.type).toLowerCase()==='file')schedulePhotoScan();},true);
 async function start(){try{capturedLocalPhotos=collectLocalPhotos();await loadSdk();sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});document.getElementById('cloudSignIn').onclick=signIn;document.getElementById('cloudSignUp').onclick=signUp;document.getElementById('cloudForgot').onclick=forgotPassword;document.getElementById('cloudSetPassword').onclick=setNewPassword;document.getElementById('cloudLogout').onclick=async()=>{await sb.auth.signOut();location.reload();};sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){recoveryMode=true;setAuthUi(true);}else setTimeout(refreshAuth,0);});await refreshAuth();}catch(e){console.error(e);status('⚠️ Cloud sync could not load');}}
 start();
 })();
