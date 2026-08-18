@@ -11,6 +11,21 @@ function getAllowedEditors_() {
 }
 
 /**
+ * Returns whether the current user is permitted to edit.
+ * Called client-side via google.script.run after page load.
+ */
+function checkCanEdit() {
+  var email = '';
+  try { email = Session.getActiveUser().getEmail().toLowerCase(); } catch(ex) {
+    console.log('[checkCanEdit] Session.getActiveUser() threw: ' + ex.message);
+  }
+  var allowed = getAllowedEditors_();
+  var result = allowed.indexOf(email) !== -1;
+  console.log('[checkCanEdit] email=' + (email || '(empty)') + ' allowed=' + result + ' editors=' + allowed.join(','));
+  return result;
+}
+
+/**
  * Web App entry point — serves the full SPA for every request.
  * Optional ?plantId=<id> opens the modal immediately via INITIAL_PLANT_ID.
  */
@@ -20,7 +35,6 @@ function doGet(e) {
   var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   var plants = getPlants_(sheet);
   var canEdit = false;
-  try { canEdit = getAllowedEditors_().indexOf(Session.getActiveUser().getEmail().toLowerCase()) !== -1; } catch(ex) {}
   var baseUrl = ScriptApp.getService().getUrl();
   return HtmlService.createHtmlOutput(renderApp_(plants, baseUrl, initialPlantId, canEdit))
     .setTitle('Plantdex')
@@ -502,13 +516,19 @@ function renderApp_(plants, baseUrl, initialPlantId, canEdit) {
     '    init: function() {',
     '      var self = this;',
     '      if (INITIAL_PLANT_ID) { self.openView(INITIAL_PLANT_ID); }',
-    '      if (typeof google !== \'undefined\' && google.script && google.script.url) {',
-    '        google.script.url.getLocation(function(loc) {',
-    '          var id = loc && loc.parameter ? loc.parameter.plantId : null;',
-    '          if (id && !self.modalOpen) { self.openView(id); }',
-    '        });',
-    '      }',
-    '    },',
+'      if (typeof google !== \'undefined\' && google.script && google.script.url) {',
+'        google.script.url.getLocation(function(loc) {',
+'          var id = loc && loc.parameter ? loc.parameter.plantId : null;',
+'          if (id && !self.modalOpen) { self.openView(id); }',
+'        });',
+'      }',
+'      if (typeof google !== \'undefined\' && google.script && google.script.run) {',
+'        google.script.run',
+'          .withSuccessHandler(function(result) { self.canEdit = result; })',
+'          .withFailureHandler(function() { self.canEdit = false; })',
+'          .checkCanEdit();',
+'      }',
+'    },',
     '',
     '    get filtered() {',
     '      var q = this.search.trim().toLowerCase();',
