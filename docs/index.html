@@ -40,7 +40,7 @@
     var BASE = 'https://script.google.com/macros/s/AKfycbwheFuxTlMMxKgwlTR95Ve7a8pBGexjBhW6GE4e3tA62-3MTrWb6bBt9MbkerRHJyMO5g/exec';
     var params = new URLSearchParams(window.location.search);
     var plantId = params.get('plantId');
-    var target = plantId ? BASE + '?plantId=' + encodeURIComponent(plantId) : BASE;
+    var target = BASE + '?ref=github-pages' + (plantId ? '&plantId=' + encodeURIComponent(plantId) : '');
     window.location.replace(target);
   </script>
 

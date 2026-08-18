@@ -27,10 +27,15 @@ function checkCanEdit() {
 function doGet(e) {
   var params = e && e.parameter ? e.parameter : {};
   var initialPlantId = params.plantId || null;
+  var ref = (params.ref) || '';
+  var serviceUrl = ScriptApp.getService().getUrl();
+  var baseUrl = (ref === 'github-pages')
+    ? 'https://poseidonkaiser.github.io/Plantdex'
+    : serviceUrl;
   var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   var plants = getPlants_(sheet);
   var canEdit = false;
-  return HtmlService.createHtmlOutput(renderApp_(plants, initialPlantId, canEdit))
+  return HtmlService.createHtmlOutput(renderApp_(plants, initialPlantId, canEdit, baseUrl))
     .setTitle('Plantdex')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
@@ -152,7 +157,7 @@ function getPlantById_(sheet, id) {
  * Render the full SPA as a string of HTML.
  * Replaces renderIndex_, renderPlantProfile_, renderNotFound_.
  */
-function renderApp_(plants, initialPlantId, canEdit) {
+function renderApp_(plants, initialPlantId, canEdit, baseUrl) {
   var plantsJson = JSON.stringify(plants);
   var initialPlantIdJson = initialPlantId ? JSON.stringify(initialPlantId) : 'null';
   var canEditJson = canEdit ? 'true' : 'false';
@@ -514,7 +519,7 @@ function renderApp_(plants, initialPlantId, canEdit) {
     // ── CLIENT-SIDE SCRIPT ───────────────────────────────────────────────────
     '<script>',
     'var PLANTS = ' + plantsJson + ';',
-    'var BASE_URL = \'https://poseidonkaiser.github.io/Plantdex\';',
+    'var BASE_URL = ' + JSON.stringify(baseUrl) + ';',
     'var INITIAL_PLANT_ID = ' + initialPlantIdJson + ';',
     'var CAN_EDIT = ' + canEditJson + ';',
     '',
