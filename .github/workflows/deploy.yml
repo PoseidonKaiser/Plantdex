@@ -33,3 +33,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+# Pages source is GitHub Actions; this comment intentionally triggers a fresh deployment.
