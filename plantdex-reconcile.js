@@ -24,6 +24,11 @@ async function hydrateGalleryNode(client,node,paths){
   }
   return node;
 }
+function refreshOpenProfile(){
+  try{
+    if(typeof activeProfileId!=='undefined'&&activeProfileId&&typeof renderProfile==='function')renderProfile();
+  }catch(e){console.warn('Plantdex profile refresh skipped',e);}
+}
 async function reconcile(){
   if(editorOpen()||busy||Date.now()-lastRun<800)return;
   if(!window.supabase||typeof plants==='undefined'||typeof render!=='function')return;
@@ -49,7 +54,8 @@ async function reconcile(){
     plants.splice(0,plants.length,...next);
     localStorage.setItem(LOCAL_KEY,JSON.stringify(plants));
     render();
-    requestAnimationFrame(()=>render());
+    refreshOpenProfile();
+    requestAnimationFrame(()=>{render();refreshOpenProfile();});
     lastRun=Date.now();
   }catch(e){console.warn('Plantdex reconciliation skipped',e);}
   finally{busy=false;}
