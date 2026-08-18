@@ -39,7 +39,7 @@
     html=html.replace('<section class="stats">',authBar+'\n    <section class="stats">');
     const toolbarMatch=html.match(/\s*<div class="toolbar">[\s\S]*?<\/div>\s*(?=<div class="table-wrap">)/);
     if(toolbarMatch){const toolbar=toolbarMatch[0];html=html.replace(toolbarMatch[0],'');html=html.replace('<section class="stats">',toolbar+'\n    <section class="stats">');}
-    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=b97aab1"></scr'+'ipt>';
+    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=2ead735"></scr'+'ipt>';
     html=html.replace('</body>',cloudTag+'\n</body>');
     document.open();document.write(html);document.close();
   }catch(err){document.body.innerHTML='<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>'+String(err&&err.message||err)+'</p></div>';}
