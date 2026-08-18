@@ -30,8 +30,7 @@ function doGet(e) {
   var sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
   var plants = getPlants_(sheet);
   var canEdit = false;
-  var baseUrl = ScriptApp.getService().getUrl();
-  return HtmlService.createHtmlOutput(renderApp_(plants, baseUrl, initialPlantId, canEdit))
+  return HtmlService.createHtmlOutput(renderApp_(plants, initialPlantId, canEdit))
     .setTitle('Plantdex')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
@@ -153,7 +152,7 @@ function getPlantById_(sheet, id) {
  * Render the full SPA as a string of HTML.
  * Replaces renderIndex_, renderPlantProfile_, renderNotFound_.
  */
-function renderApp_(plants, baseUrl, initialPlantId, canEdit) {
+function renderApp_(plants, initialPlantId, canEdit) {
   var plantsJson = JSON.stringify(plants);
   var initialPlantIdJson = initialPlantId ? JSON.stringify(initialPlantId) : 'null';
   var canEditJson = canEdit ? 'true' : 'false';
@@ -482,7 +481,7 @@ function renderApp_(plants, baseUrl, initialPlantId, canEdit) {
     // ── CLIENT-SIDE SCRIPT ───────────────────────────────────────────────────
     '<script>',
     'var PLANTS = ' + plantsJson + ';',
-    'var BASE_URL = ' + JSON.stringify(baseUrl) + ';',
+    'var BASE_URL = \'https://poseidonkaiser.github.io/Plantdex\';',
     'var INITIAL_PLANT_ID = ' + initialPlantIdJson + ';',
     'var CAN_EDIT = ' + canEditJson + ';',
     '',
