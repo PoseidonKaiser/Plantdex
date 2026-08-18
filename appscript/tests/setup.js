@@ -19,14 +19,13 @@ eval(src);
 
 // Explicitly promote each GAS function to global so Jest's sandbox sees them.
 /* global getAllowedEditors_, doGet, getPlants_, updatePlant, addPlant,
-          assertCanWrite_, checkCanEdit, writeFields_, getPlantById_, renderApp_, page_, esc_ */
+          assertCanWrite_, writeFields_, getPlantById_, renderApp_, page_, esc_ */
 global.getAllowedEditors_ = getAllowedEditors_;
 global.doGet = doGet;
 global.getPlants_ = getPlants_;
 global.updatePlant = updatePlant;
 global.addPlant = addPlant;
 global.assertCanWrite_ = assertCanWrite_;
-global.checkCanEdit = checkCanEdit;
 global.writeFields_ = writeFields_;
 global.getPlantById_ = getPlantById_;
 global.renderApp_ = renderApp_;
