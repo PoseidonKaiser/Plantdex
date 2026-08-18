@@ -30,7 +30,11 @@
     html=html.replace('<td>${p.photo ? `<img class="plant-photo" src="${p.photo}" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</td>', '<td><button class="photo-link" type="button" onclick="viewProfile(\'${p.id}\')" title="Open profile">${p.photo ? `<img class="plant-photo" src="${p.photo}" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</button></td>');
     html=html.replace('<label><span>Last Fertilized</span><input id="lastFertilized" type="date"></label>', '<label><span>Last Fertilized</span><input id="lastFertilized" type="date"></label>\n        <label><span>Number of Leaves</span><input id="numberLeaves" type="number" min="0" placeholder="e.g. 4"></label>\n        <label><span>Leaf 👀</span><input id="leafEye" type="checkbox" style="width:auto;transform:scale(1.25)"></label>');
     html=html.replace('document.getElementById("lastFertilized").value = plant?.lastFertilized || "";', 'document.getElementById("lastFertilized").value = plant?.lastFertilized || "";\n  document.getElementById("numberLeaves").value = plant?.numberLeaves ?? "";\n  document.getElementById("leafEye").checked = !!plant?.leafEye;');
+    html=html.replace('const item = {\n    id, photo,', 'const item = {\n    ...(i >= 0 ? plants[i] : {}),\n    id, photo,');
     html=html.replace('lastFertilized: document.getElementById("lastFertilized").value,', 'lastFertilized: document.getElementById("lastFertilized").value,\n    numberLeaves: document.getElementById("numberLeaves").value ? Number(document.getElementById("numberLeaves").value) : "",\n    leafEye: document.getElementById("leafEye").checked,');
+    html=html.replace('if(i>=0) plants[i]=item; else plants.push(item);', 'if(preview.dataset.removePhoto === "true") item.removePhotoCloud = true;\n  if(i>=0) plants[i]=item; else plants.push(item);');
+    html=html.replace('p.gallery.splice(index,1);\n  savePlants(); renderGallery();', 'p.gallery.splice(index,1);\n  if(Array.isArray(p.galleryCloudPaths)) p.galleryCloudPaths.splice(index,1);\n  savePlants(); renderGallery();');
+    html=html.replace('p.gallery.unshift({\n    src,\n    date: document.getElementById("galleryDate").value || new Date().toISOString().slice(0,10),\n    note: ""\n  });', 'p.gallery.unshift({\n    src,\n    date: document.getElementById("galleryDate").value || new Date().toISOString().slice(0,10),\n    note: ""\n  });\n  p.galleryCloudPaths = Array.isArray(p.galleryCloudPaths) ? p.galleryCloudPaths : [];\n  p.galleryCloudPaths.unshift(null);');
     html=html.replace('["Health", p.health || "Good"]', '["Health", p.health || "Good"],\n    ["Number of Leaves", p.numberLeaves],\n    ["Leaf 👀", p.leafEye ? "Yes" : "No"]');
     html=html.replace('Your data is stored in this browser using local storage.', 'Plantdex keeps a local cache in this browser and securely syncs your collection and photos through Supabase when signed in.');
     const storageKey='plantCollectionTracker_profiles_v8';
@@ -39,7 +43,7 @@
     html=html.replace('<section class="stats">',authBar+'\n    <section class="stats">');
     const toolbarMatch=html.match(/\s*<div class="toolbar">[\s\S]*?<\/div>\s*(?=<div class="table-wrap">)/);
     if(toolbarMatch){const toolbar=toolbarMatch[0];html=html.replace(toolbarMatch[0],'');html=html.replace('<section class="stats">',toolbar+'\n    <section class="stats">');}
-    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=2ead735"></scr'+'ipt>';
+    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=fullsync-0818"></scr'+'ipt>';
     html=html.replace('</body>',cloudTag+'\n</body>');
     document.open();document.write(html);document.close();
   }catch(err){document.body.innerHTML='<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>'+String(err&&err.message||err)+'</p></div>';}
