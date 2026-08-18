@@ -16,13 +16,8 @@ function getAllowedEditors_() {
  */
 function checkCanEdit() {
   var email = '';
-  try { email = Session.getActiveUser().getEmail().toLowerCase(); } catch(ex) {
-    console.log('[checkCanEdit] Session.getActiveUser() threw: ' + ex.message);
-  }
-  var allowed = getAllowedEditors_();
-  var result = allowed.indexOf(email) !== -1;
-  console.log('[checkCanEdit] email=' + (email || '(empty)') + ' allowed=' + result + ' editors=' + allowed.join(','));
-  return result;
+  try { email = Session.getActiveUser().getEmail().toLowerCase(); } catch(ex) {}
+  return getAllowedEditors_().indexOf(email) !== -1;
 }
 
 /**
