@@ -16,104 +16,35 @@
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: #f4f7f2; }
-
-    #shell {
+    html, body {
+      height: 100%;
+      background: #f4f7f2;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #2d5a3d;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100%;
       flex-direction: column;
       gap: 12px;
-      font-family: system-ui, -apple-system, sans-serif;
-      color: #2d5a3d;
     }
-    #shell .leaf { font-size: 3rem; animation: pulse 2s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-    #shell p { font-size: .95rem; color: #5a7a65; }
-
-    #offline {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      flex-direction: column;
-      gap: 12px;
-      font-family: system-ui, -apple-system, sans-serif;
-      color: #2d5a3d;
-      text-align: center;
-      padding: 24px;
-    }
-    #offline .icon { font-size: 3rem; }
-    #offline h1 { font-size: 1.2rem; font-weight: 700; }
-    #offline p { font-size: .9rem; color: #5a7a65; }
-    #offline button {
-      margin-top: 8px;
-      padding: 10px 24px;
-      background: #2d5a3d;
-      color: #fff;
-      border: none;
-      border-radius: 999px;
-      font-size: .95rem;
-      cursor: pointer;
-    }
-
-    iframe {
-      display: none;
-      width: 100%;
-      height: 100%;
-      border: none;
-      position: fixed;
-      inset: 0;
-    }
+    .leaf { font-size: 3rem; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    p { font-size: .95rem; color: #5a7a65; }
   </style>
 </head>
 <body>
-  <div id="shell">
-    <div class="leaf">🌿</div>
-    <p>Loading Plantdex…</p>
-  </div>
-
-  <div id="offline">
-    <div class="icon">🌵</div>
-    <h1>You're offline</h1>
-    <p>Plantdex needs a connection to load your plants.</p>
-    <button onclick="location.reload()">Try again</button>
-  </div>
-
-  <iframe id="app" title="Plantdex" allow="clipboard-write; clipboard-read"></iframe>
+  <div class="leaf">🌿</div>
+  <p>Opening Plantdex…</p>
 
   <script>
-    var BASE_URL = 'https://script.google.com/macros/s/AKfycbwheFuxTlMMxKgwlTR95Ve7a8pBGexjBhW6GE4e3tA62-3MTrWb6bBt9MbkerRHJyMO5g/exec';
-
-    // Forward ?plantId=N from the GitHub Pages URL to the Apps Script URL
+    var BASE = 'https://script.google.com/macros/s/AKfycbwheFuxTlMMxKgwlTR95Ve7a8pBGexjBhW6GE4e3tA62-3MTrWb6bBt9MbkerRHJyMO5g/exec';
     var params = new URLSearchParams(window.location.search);
     var plantId = params.get('plantId');
-    var appUrl = plantId ? BASE_URL + '?plantId=' + encodeURIComponent(plantId) : BASE_URL;
+    var target = plantId ? BASE + '?plantId=' + encodeURIComponent(plantId) : BASE;
+    window.location.replace(target);
+  </script>
 
-    if (!navigator.onLine) {
-      document.getElementById('shell').style.display = 'none';
-      document.getElementById('offline').style.display = 'flex';
-    } else {
-      var iframe = document.getElementById('app');
-      iframe.src = appUrl;
-      iframe.onload = function() {
-        document.getElementById('shell').style.display = 'none';
-        iframe.style.display = 'block';
-      };
-    }
-
-    window.addEventListener('offline', function() {
-      document.getElementById('shell').style.display = 'none';
-      document.getElementById('app').style.display = 'none';
-      document.getElementById('offline').style.display = 'flex';
-    });
-
-    window.addEventListener('online', function() {
-      location.reload();
-    });
-
-    // Register service worker
+  <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(function(err) {
         console.warn('SW registration failed:', err);

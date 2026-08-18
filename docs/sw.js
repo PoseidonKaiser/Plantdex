@@ -1,4 +1,4 @@
-var CACHE = 'plantdex-shell-v1';
+var CACHE = 'plantdex-shell-v2';
 var SHELL = [
   '/Plantdex/',
   '/Plantdex/index.html',
@@ -29,24 +29,15 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-  var url = e.request.url;
-
-  // Network-only for Apps Script (never cache it)
-  if (url.indexOf('script.google.com') !== -1) return;
-
-  // Cache-first for shell assets
   e.respondWith(
     caches.match(e.request).then(function(cached) {
-      if (cached) return cached;
-      return fetch(e.request).then(function(response) {
-        // Cache valid responses for shell assets
+      return cached || fetch(e.request).then(function(response) {
         if (response && response.status === 200) {
           var clone = response.clone();
           caches.open(CACHE).then(function(cache) { cache.put(e.request, clone); });
         }
         return response;
       }).catch(function() {
-        // Offline fallback — return cached shell
         return caches.match('/Plantdex/index.html');
       });
     })
