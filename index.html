@@ -20,26 +20,45 @@
     const dataRows=rows.filter(c=>c[2]&&c[2].trim());
     const importedMatch=html.match(/const IMPORTED_PLANTS = (\[.*?\]);\nlet plants/s);
     if(!importedMatch) throw new Error('Plant database could not be located.');
-    const plants=JSON.parse(importedMatch[1]);
+    const seedPlants=JSON.parse(importedMatch[1]);
     const genusMap={Philodendron:'Philodendron / Araceae',Monstera:'Monstera / Araceae',Hoya:'Hoya / Apocynaceae',Suculents:'Succulent',Pothos:'Epipremnum / Araceae',Ferns:'Fern',Fruiting:'Edible / Fruiting',Misc:'Miscellaneous',Syngonium:'Syngonium / Araceae',Alocasia:'Alocasia / Araceae'};
     const pad=n=>String(n).padStart(2,'0');
-    dataRows.forEach((c,i)=>{if(!plants[i])return;const p=plants[i];p.genus=genusMap[(c[1]||'').trim()]||p.genus||'';p.type=(c[2]||'').trim();p.nickname=(c[4]||'').trim();p.source=(c[5]||'').trim();const when=(c[6]||'').trim();if(when){const [m,d]=when.split('/').map(Number);if(m&&d)p.dateAcquired=`2026-${pad(m)}-${pad(d)}`;}p.price=(c[7]||'').trim();p.location=(c[8]||'').trim();p.potSize=(c[9]||'').trim();p.numberLeaves=(c[10]||'').trim()?Number(c[10]):'';p.leafEye=((c[11]||'').trim().toUpperCase()==='TRUE');});
-    html=html.replace(importedMatch[1],JSON.stringify(plants));
+    dataRows.forEach((c,i)=>{if(!seedPlants[i])return;const p=seedPlants[i];p.genus=genusMap[(c[1]||'').trim()]||p.genus||'';p.type=(c[2]||'').trim();p.nickname=(c[4]||'').trim();p.source=(c[5]||'').trim();const when=(c[6]||'').trim();if(when){const [m,d]=when.split('/').map(Number);if(m&&d)p.dateAcquired=`2026-${pad(m)}-${pad(d)}`;}p.price=(c[7]||'').trim();p.location=(c[8]||'').trim();p.potSize=(c[9]||'').trim();p.numberLeaves=(c[10]||'').trim()?Number(c[10]):'';p.leafEye=((c[11]||'').trim().toUpperCase()==='TRUE');});
+    html=html.replace(importedMatch[1],JSON.stringify(seedPlants));
     html=html.replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8');
-    html=html.replace('.plant-name{font-weight:800}', '.plant-name{font-weight:800}\n    .photo-link{border:0;background:transparent;padding:0;cursor:pointer;border-radius:12px}');
+    html=html.replace('.plant-name{font-weight:800}', '.plant-name{font-weight:800}\n    .photo-link{border:0;background:transparent;padding:0;cursor:pointer;border-radius:12px}\n    .cloudbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;background:#eef6ef;border:1px solid var(--line);border-radius:14px}.cloudbar input{max-width:280px}.cloudstatus{font-size:.85rem;color:var(--muted);font-weight:700}');
     html=html.replace('<td>${p.photo ? `<img class="plant-photo" src="${p.photo}" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</td>', '<td><button class="photo-link" type="button" onclick="viewProfile(\'${p.id}\')" title="Open profile">${p.photo ? `<img class="plant-photo" src="${p.photo}" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</button></td>');
     html=html.replace('<label><span>Last Fertilized</span><input id="lastFertilized" type="date"></label>', '<label><span>Last Fertilized</span><input id="lastFertilized" type="date"></label>\n        <label><span>Number of Leaves</span><input id="numberLeaves" type="number" min="0" placeholder="e.g. 4"></label>\n        <label><span>Leaf 👀</span><input id="leafEye" type="checkbox" style="width:auto;transform:scale(1.25)"></label>');
     html=html.replace('document.getElementById("lastFertilized").value = plant?.lastFertilized || "";', 'document.getElementById("lastFertilized").value = plant?.lastFertilized || "";\n  document.getElementById("numberLeaves").value = plant?.numberLeaves ?? "";\n  document.getElementById("leafEye").checked = !!plant?.leafEye;');
     html=html.replace('lastFertilized: document.getElementById("lastFertilized").value,', 'lastFertilized: document.getElementById("lastFertilized").value,\n    numberLeaves: document.getElementById("numberLeaves").value ? Number(document.getElementById("numberLeaves").value) : "",\n    leafEye: document.getElementById("leafEye").checked,');
     html=html.replace('["Health", p.health || "Good"]', '["Health", p.health || "Good"],\n    ["Number of Leaves", p.numberLeaves],\n    ["Leaf 👀", p.leafEye ? "Yes" : "No"]');
+    html=html.replace('Your data is stored in this browser using local storage.', 'Plantdex keeps a local cache in this browser and can securely sync your collection and photos through Supabase when signed in.');
 
-    // Seed the collection only on first use. Previously this ran on every page load,
-    // which overwrote user edits (including uploaded photos) with the CSV defaults.
     const storageKey='plantCollectionTracker_profiles_v8';
-    if(!localStorage.getItem(storageKey)){
-      localStorage.setItem(storageKey,JSON.stringify(plants));
-    }
+    if(!localStorage.getItem(storageKey)) localStorage.setItem(storageKey,JSON.stringify(seedPlants));
 
+    const cloudScript=`
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\\/script>
+<script>
+(()=>{
+const SB_URL='https://twemhhiyywhogaxvlnwz.supabase.co';
+const SB_KEY='sb_publishable_gQz5LPJE-4XZHaGvUNbggA_7EkMRVOn';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+let cloudUser=null,syncTimer=null,syncing=false;
+const originalSavePlants=savePlants;
+function status(msg){const el=document.getElementById('cloudStatus');if(el)el.textContent=msg;}
+function dataUrlToBlob(dataUrl){const [meta,b64]=dataUrl.split(',');const mime=(meta.match(/data:(.*?);/)||[])[1]||'image/jpeg';const bytes=atob(b64);const arr=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);return new Blob([arr],{type:mime});}
+async function signedPhoto(path){if(!path)return '';const {data,error}=await sb.storage.from('plantdex-photos').createSignedUrl(path,60*60*24*7);return error?'':data.signedUrl;}
+async function uploadPhoto(p){if(!p.photo||!p.photo.startsWith('data:'))return p.photoPath||'';const blob=dataUrlToBlob(p.photo);const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');const safe=String(p.id||Date.now()).replace(/[^a-zA-Z0-9_-]/g,'_');const path=cloudUser.id+'/'+safe+'/main.'+ext;const {error}=await sb.storage.from('plantdex-photos').upload(path,blob,{upsert:true,contentType:blob.type});if(error)throw error;p.photoPath=path;p.photo=await signedPhoto(path);return path;}
+async function syncNow(){if(!cloudUser||syncing)return;syncing=true;status('☁️ Syncing…');try{for(const p of plants){const path=await uploadPhoto(p);const clean={...p,photo:'',photoPath:path||p.photoPath||''};const {error}=await sb.from('plantdex_plants').upsert({user_id:cloudUser.id,local_id:String(p.id),data:clean,photo_path:path||null},{onConflict:'user_id,local_id'});if(error)throw error;}originalSavePlants();status('☁️ Synced');}catch(e){console.error(e);status('⚠️ Sync issue — local copy kept');}finally{syncing=false;}}
+savePlants=function(){originalSavePlants();if(cloudUser){clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,500);}};
+async function loadCloud(){status('☁️ Loading…');const {data,error}=await sb.from('plantdex_plants').select('local_id,data,photo_path').order('created_at');if(error)throw error;if(data.length){plants=await Promise.all(data.map(async r=>{const p={...(r.data||{}),id:r.local_id};p.photoPath=r.photo_path||p.photoPath||'';p.photo=await signedPhoto(p.photoPath);return p;}));originalSavePlants();render();status('☁️ Synced');}else{status('☁️ Migrating local collection…');await syncNow();}}
+async function refreshAuth(){const {data:{session}}=await sb.auth.getSession();cloudUser=session?.user||null;const email=document.getElementById('cloudEmail'),login=document.getElementById('cloudLogin'),logout=document.getElementById('cloudLogout');if(cloudUser){if(email)email.style.display='none';if(login)login.style.display='none';if(logout)logout.style.display='';await loadCloud();}else{if(email)email.style.display='';if(login)login.style.display='';if(logout)logout.style.display='none';status('Local mode — sign in to sync');}}
+async function init(){const toolbar=document.querySelector('.toolbar'),stats=document.querySelector('.stats'),panel=document.querySelector('.panel');if(toolbar&&stats){toolbar.remove();toolbar.style.margin='0 0 16px';stats.parentNode.insertBefore(toolbar,stats);}if(panel){const bar=document.createElement('div');bar.className='cloudbar';bar.innerHTML='<input id="cloudEmail" type="email" placeholder="Email for Plantdex cloud sync"><button class="secondary" id="cloudLogin">Email me a sign-in link</button><button class="secondary" id="cloudLogout" style="display:none">Sign out</button><span class="cloudstatus" id="cloudStatus">Checking cloud…</span>';panel.insertBefore(bar,panel.firstChild);document.getElementById('cloudLogin').onclick=async()=>{const email=document.getElementById('cloudEmail').value.trim();if(!email)return alert('Enter your email first.');status('Sending sign-in link…');const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split('#')[0]}});if(error){console.error(error);status('Could not send link');alert(error.message);}else status('Check your email for the Plantdex sign-in link.');};document.getElementById('cloudLogout').onclick=async()=>{await sb.auth.signOut();location.reload();};}sb.auth.onAuthStateChange(()=>setTimeout(refreshAuth,0));await refreshAuth();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+<\\/script>`;
+    html=html.replace('</body>',cloudScript+'\n</body>');
     document.open();document.write(html);document.close();
   }catch(err){document.body.innerHTML=`<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>${err.message}</p></div>`;}
 })();
