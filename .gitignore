@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+
+# Editor
+.opencode/
+
+# Clasp local auth (never commit credentials)
+.clasprc.json
