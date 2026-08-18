@@ -2,7 +2,7 @@
 const SB_URL='https://twemhhiyywhogaxvlnwz.supabase.co';
 const SB_KEY='sb_publishable_gQz5LPJE-4XZHaGvUNbggA_7EkMRVOn';
 const LOCAL_KEY='plantCollectionTracker_profiles_v8';
-let sb=null,cloudUser=null,syncTimer=null,syncing=false,recoveryMode=false,photoWatch=null,localWatch=null,lastLocalJson='';
+let sb=null,cloudUser=null,syncTimer=null,syncing=false,syncPending=false,recoveryMode=false,photoWatch=null,localWatch=null,lastLocalJson='';
 const cloudPhotoPaths=new Map();
 const originalSavePlants=window.savePlants;
 
@@ -122,7 +122,27 @@ async function syncNow(){
   }catch(e){console.error('Plantdex sync failed',e);status('⚠️ Sync issue — local copy kept');}
   finally{syncing=false;}
 }
-function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(async()=>{await syncLocalPhotos();await syncNow();},350);}
+async function flushQueuedSync(){
+  if(!cloudUser)return;
+  if(syncing){
+    clearTimeout(syncTimer);
+    syncTimer=setTimeout(flushQueuedSync,450);
+    return;
+  }
+  syncPending=false;
+  await syncLocalPhotos();
+  await syncNow();
+  if(syncPending){
+    clearTimeout(syncTimer);
+    syncTimer=setTimeout(flushQueuedSync,150);
+  }
+}
+function queueSync(){
+  if(!cloudUser)return;
+  syncPending=true;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(flushQueuedSync,350);
+}
 window.savePlants=function(){originalSavePlants();rememberLocal();queueSync();};
 window.plantdexCloudSync=queueSync;
 
