@@ -31,3 +31,4 @@ global.getPlantById_ = getPlantById_;
 global.renderApp_ = renderApp_;
 global.page_ = page_;
 global.esc_ = esc_;
+global.checkCanEdit = checkCanEdit;
