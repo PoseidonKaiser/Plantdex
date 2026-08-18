@@ -77,7 +77,7 @@ function renderIndex_(plants, baseUrl) {
     // Header
     '<div class="flex items-center gap-3 mb-6">',
     '  <span class="text-3xl">🌿</span>',
-    '  <h1 class="text-2xl font-bold text-plant-dark tracking-tight">Plantdex</h1>',
+    '  <h1 class="text-2xl font-bold text-[#2d5a3d] tracking-tight">Plantdex</h1>',
     '</div>',
 
     // Alpine component
@@ -89,21 +89,21 @@ function renderIndex_(plants, baseUrl) {
     '    x-model="search"',
     '    type="search"',
     '    placeholder="Search by nickname, type, or category…"',
-    '    class="w-full rounded-xl border border-plant-border bg-white px-4 py-2.5 text-sm shadow-sm',
-    '           placeholder:text-plant-mid focus:outline-none focus:ring-2 focus:ring-plant-dark/30"',
+    '    class="w-full rounded-xl border border-[#e8f0ea] bg-white px-4 py-2.5 text-sm shadow-sm',
+    '           placeholder:text-[#5a7a65] focus:outline-none focus:ring-2 focus:ring-[#2d5a3d]/30"',
     '  />',
     '</div>',
 
     // Result count
-    '<p class="text-xs text-plant-mid mb-3" x-text="filtered.length + \' plant\' + (filtered.length === 1 ? \'\' : \'s\')"></p>',
+    '<p class="text-xs text-[#5a7a65] mb-3" x-text="filtered.length + \' plant\' + (filtered.length === 1 ? \'\' : \'s\')"></p>',
 
     // Table wrapper
-    '<div class="overflow-hidden rounded-2xl border border-plant-border shadow-sm bg-white">',
+    '<div class="overflow-hidden rounded-2xl border border-[#e8f0ea] shadow-sm bg-white">',
     '<table class="w-full border-collapse text-sm">',
 
     // Thead
     '<thead>',
-    '<tr class="bg-plant-dark text-white">',
+    '<tr class="bg-[#2d5a3d] text-white">',
     '  <th class="px-4 py-3 text-left font-semibold w-12">#</th>',
 
     // Sortable headers — macro-expanded inline for GAS string safety
@@ -142,19 +142,19 @@ function renderIndex_(plants, baseUrl) {
     '  <template x-for="(plant, i) in filtered" :key="plant.id">',
     '    <tr',
     '      @click="nav(plant.url)"',
-    '      class="border-t border-plant-border hover:bg-plant-light cursor-pointer transition-colors"',
+    '      class="border-t border-[#e8f0ea] hover:bg-[#f4f7f2] cursor-pointer transition-colors"',
     '    >',
-    '      <td class="px-4 py-3 text-plant-mid text-xs font-mono" x-text="plant.id"></td>',
-    '      <td class="px-4 py-3 text-plant-mid text-xs" x-text="plant.category"></td>',
-    '      <td class="px-4 py-3 font-medium text-plant-dark" x-text="plant.nickname || plant.type || \'—\'"></td>',
-    '      <td class="px-4 py-3 text-plant-mid hidden sm:table-cell" x-text="plant.type"></td>',
-    '      <td class="px-4 py-3 text-plant-mid hidden md:table-cell" x-text="plant.location"></td>',
+    '      <td class="px-4 py-3 text-[#5a7a65] text-xs font-mono" x-text="plant.id"></td>',
+    '      <td class="px-4 py-3 text-[#5a7a65] text-xs" x-text="plant.category"></td>',
+    '      <td class="px-4 py-3 font-medium text-[#2d5a3d]" x-text="plant.nickname || plant.type || \'—\'"></td>',
+    '      <td class="px-4 py-3 text-[#5a7a65] hidden sm:table-cell" x-text="plant.type"></td>',
+    '      <td class="px-4 py-3 text-[#5a7a65] hidden md:table-cell" x-text="plant.location"></td>',
     '    </tr>',
     '  </template>',
 
     // Empty state
     '  <tr x-show="filtered.length === 0">',
-    '    <td colspan="5" class="px-4 py-10 text-center text-plant-mid text-sm">No plants match your search.</td>',
+    '    <td colspan="5" class="px-4 py-10 text-center text-[#5a7a65] text-sm">No plants match your search.</td>',
     '  </tr>',
     '</tbody>',
     '</table>',
@@ -239,9 +239,9 @@ function renderPlantProfile_(p, baseUrl) {
 
   var rows = validFields.map(function(f) {
     return (
-      '<div class="grid grid-cols-[130px_1fr] sm:grid-cols-[160px_1fr] gap-x-4 py-3 border-b border-plant-border last:border-0">' +
-      '  <span class="text-xs font-semibold uppercase tracking-wide text-plant-mid self-center">' + esc_(f[0]) + '</span>' +
-      '  <span class="text-plant-dark font-medium">' + esc_(String(f[1])) + '</span>' +
+      '<div class="grid grid-cols-[130px_1fr] sm:grid-cols-[160px_1fr] gap-x-4 py-3 border-b border-[#e8f0ea] last:border-0">' +
+      '  <span class="text-xs font-semibold uppercase tracking-wide text-[#5a7a65] self-center">' + esc_(f[0]) + '</span>' +
+      '  <span class="text-[#2d5a3d] font-medium">' + esc_(String(f[1])) + '</span>' +
       '</div>'
     );
   }).join('');
@@ -255,18 +255,18 @@ function renderPlantProfile_(p, baseUrl) {
     // Back link
     '<a href="#"',
     '   onclick="top.location.href=\'' + baseUrl + '\';return false;"',
-    '   class="inline-flex items-center gap-1.5 text-sm text-plant-dark hover:underline mb-6">',
+    '   class="inline-flex items-center gap-1.5 text-sm text-[#2d5a3d] hover:underline mb-6">',
     '  ← All Plants',
     '</a>',
 
     // Title block
     '<div class="mb-6">',
-    '  <h1 class="text-2xl font-bold text-plant-dark tracking-tight">' + esc_(title) + '</h1>',
-    '  <p class="text-plant-mid text-sm mt-1">' + esc_(subtitle) + '</p>',
+    '  <h1 class="text-2xl font-bold text-[#2d5a3d] tracking-tight">' + esc_(title) + '</h1>',
+    '  <p class="text-[#5a7a65] text-sm mt-1">' + esc_(subtitle) + '</p>',
     '</div>',
 
     // Card
-    '<div class="bg-white rounded-2xl border border-plant-border shadow-sm p-4 sm:p-6">',
+    '<div class="bg-white rounded-2xl border border-[#e8f0ea] shadow-sm p-4 sm:p-6">',
     rows,
     '</div>',
 
@@ -280,11 +280,11 @@ function renderNotFound_(id, baseUrl) {
   var body = [
     '<div class="max-w-2xl mx-auto px-4 py-16 text-center">',
     '  <p class="text-4xl mb-4">🌱</p>',
-    '  <h1 class="text-xl font-bold text-plant-dark mb-2">Plant not found</h1>',
-    '  <p class="text-plant-mid text-sm mb-6">No plant with ID <strong class="font-semibold text-plant-dark">' + esc_(String(id)) + '</strong>.</p>',
+    '  <h1 class="text-xl font-bold text-[#2d5a3d] mb-2">Plant not found</h1>',
+    '  <p class="text-[#5a7a65] text-sm mb-6">No plant with ID <strong class="font-semibold text-[#2d5a3d]">' + esc_(String(id)) + '</strong>.</p>',
     '  <a href="#"',
     '     onclick="top.location.href=\'' + baseUrl + '\';return false;"',
-    '     class="text-sm text-plant-dark hover:underline">',
+    '     class="text-sm text-[#2d5a3d] hover:underline">',
     '    ← Back to collection',
     '  </a>',
     '</div>'
@@ -303,23 +303,6 @@ function page_(title, body) {
     '  <meta name="viewport" content="width=device-width, initial-scale=1">',
     '  <title>' + title + '</title>',
 
-    // Tailwind must be configured before cdn.tailwindcss.com loads
-    '  <script>',
-    '    tailwind = { config: {',
-    '      theme: {',
-    '        extend: {',
-    '          colors: {',
-    '            plant: {',
-    '              dark:   \'#2d5a3d\',',
-    '              mid:    \'#5a7a65\',',
-    '              light:  \'#f4f7f2\',',
-    '              border: \'#e8f0ea\'',
-    '            }',
-    '          }',
-    '        }',
-    '      }',
-    '    } };',
-    '  <\/script>',
     '  <script src="https://cdn.tailwindcss.com"><\/script>',
     '  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"><\/script>',
 
