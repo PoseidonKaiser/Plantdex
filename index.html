@@ -33,17 +33,13 @@
     html=html.replace('lastFertilized: document.getElementById("lastFertilized").value,', 'lastFertilized: document.getElementById("lastFertilized").value,\n    numberLeaves: document.getElementById("numberLeaves").value ? Number(document.getElementById("numberLeaves").value) : "",\n    leafEye: document.getElementById("leafEye").checked,');
     html=html.replace('["Health", p.health || "Good"]', '["Health", p.health || "Good"],\n    ["Number of Leaves", p.numberLeaves],\n    ["Leaf 👀", p.leafEye ? "Yes" : "No"]');
     html=html.replace('Your data is stored in this browser using local storage.', 'Plantdex keeps a local cache in this browser and securely syncs your collection and photos through Supabase when signed in.');
-
     const storageKey='plantCollectionTracker_profiles_v8';
     if(!localStorage.getItem(storageKey)) localStorage.setItem(storageKey,JSON.stringify(seedPlants));
-
-    const authBar='<div class="cloudbar" id="cloudBar"><input id="cloudEmail" type="email" autocomplete="email" placeholder="Email"><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"><button class="primary" id="cloudSignIn" type="button">Sign in</button><button class="secondary" id="cloudSignUp" type="button">Create account</button><button class="cloud-forgot" id="cloudForgot" type="button">Forgot password?</button><button class="secondary" id="cloudLogout" type="button" style="display:none">Sign out</button><span class="cloudstatus" id="cloudStatus">Loading cloud sync…</span></div>';
+    const authBar='<div class="cloudbar" id="cloudBar"><input id="cloudEmail" type="email" autocomplete="email" placeholder="Email"><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"><button class="primary" id="cloudSignIn" type="button">Sign in</button><button class="secondary" id="cloudSignUp" type="button">Create account</button><button class="primary" id="cloudSetPassword" type="button" style="display:none">Set new password</button><button class="cloud-forgot" id="cloudForgot" type="button">Forgot password?</button><button class="secondary" id="cloudLogout" type="button" style="display:none">Sign out</button><span class="cloudstatus" id="cloudStatus">Loading cloud sync…</span></div>';
     html=html.replace('<section class="stats">',authBar+'\n    <section class="stats">');
-
     const toolbarMatch=html.match(/\s*<div class="toolbar">[\s\S]*?<\/div>\s*(?=<div class="table-wrap">)/);
     if(toolbarMatch){const toolbar=toolbarMatch[0];html=html.replace(toolbarMatch[0],'');html=html.replace('<section class="stats">',toolbar+'\n    <section class="stats">');}
-
-    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=30aba3d"></scr'+'ipt>';
+    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=b97aab1"></scr'+'ipt>';
     html=html.replace('</body>',cloudTag+'\n</body>');
     document.open();document.write(html);document.close();
   }catch(err){document.body.innerHTML='<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>'+String(err&&err.message||err)+'</p></div>';}
