@@ -2,8 +2,9 @@
 const SB_URL='https://twemhhiyywhogaxvlnwz.supabase.co';
 const SB_KEY='sb_publishable_gQz5LPJE-4XZHaGvUNbggA_7EkMRVOn';
 const LOCAL_KEY='plantCollectionTracker_profiles_v8';
-let busy=false,lastRun=0;
+let busy=false,lastRun=0,focusTimer=null;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function editorOpen(){return !!document.querySelector('dialog[open]');}
 async function signedPhoto(client,path){
   if(!path)return '';
   const {data,error}=await client.storage.from('plantdex-photos').createSignedUrl(path,604800);
@@ -24,7 +25,7 @@ async function hydrateGalleryNode(client,node,paths){
   return node;
 }
 async function reconcile(){
-  if(busy||Date.now()-lastRun<800)return;
+  if(editorOpen()||busy||Date.now()-lastRun<800)return;
   if(!window.supabase||typeof plants==='undefined'||typeof render!=='function')return;
   busy=true;
   try{
@@ -59,9 +60,13 @@ async function start(){
   reconcile();
   const status=document.getElementById('cloudStatus');
   if(status){
-    new MutationObserver(()=>{if(/Synced/.test(status.textContent||''))setTimeout(reconcile,100);}).observe(status,{childList:true,characterData:true,subtree:true});
+    new MutationObserver(()=>{if(/Synced/.test(status.textContent||''))setTimeout(reconcile,250);}).observe(status,{childList:true,characterData:true,subtree:true});
   }
-  window.addEventListener('focus',()=>setTimeout(reconcile,100));
+  window.addEventListener('focus',()=>{
+    clearTimeout(focusTimer);
+    focusTimer=setTimeout(()=>{if(!editorOpen())reconcile();},1500);
+  });
 }
+window.plantdexReconcile=reconcile;
 start();
 })();
