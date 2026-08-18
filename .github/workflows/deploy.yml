@@ -34,4 +34,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# Pages source is GitHub Actions; this comment intentionally triggers a fresh deployment.
+# Restored original GitHub Pages + Supabase Plantdex frontend; deploy repository root.
