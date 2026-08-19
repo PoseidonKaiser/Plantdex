@@ -8,7 +8,8 @@ function editorOpen(){return !!document.querySelector('dialog[open]');}
 async function signedPhoto(client,path){
   if(!path)return '';
   const {data,error}=await client.storage.from('plantdex-photos').createSignedUrl(path,604800);
-  return error?'':data.signedUrl;
+  if(error){console.warn('Plantdex photo URL failed',path,error);return '';}
+  return data.signedUrl + (data.signedUrl.includes('?')?'&':'?') + 'pd=' + Date.now();
 }
 async function hydrateGalleryNode(client,node,paths){
   if(typeof paths==='string'&&paths)return await signedPhoto(client,paths);
@@ -29,8 +30,8 @@ function refreshOpenProfile(){
     if(typeof activeProfileId!=='undefined'&&activeProfileId&&typeof renderProfile==='function')renderProfile();
   }catch(e){console.warn('Plantdex profile refresh skipped',e);}
 }
-async function reconcile(){
-  if(editorOpen()||busy||Date.now()-lastRun<800)return;
+async function reconcile(force=false){
+  if(editorOpen()||busy||(!force&&Date.now()-lastRun<800))return;
   if(!window.supabase||typeof plants==='undefined'||typeof render!=='function')return;
   busy=true;
   try{
@@ -60,19 +61,22 @@ async function reconcile(){
   }catch(e){console.warn('Plantdex reconciliation skipped',e);}
   finally{busy=false;}
 }
+function scheduleForceReconcile(delay=150){
+  clearTimeout(focusTimer);
+  focusTimer=setTimeout(()=>{if(!editorOpen())reconcile(true);},delay);
+}
 async function start(){
   for(let i=0;i<80&&!window.supabase;i++)await sleep(100);
   await sleep(400);
-  reconcile();
+  await reconcile(true);
   const status=document.getElementById('cloudStatus');
   if(status){
-    new MutationObserver(()=>{if(/Synced/.test(status.textContent||''))setTimeout(reconcile,250);}).observe(status,{childList:true,characterData:true,subtree:true});
+    new MutationObserver(()=>{if(/Synced/.test(status.textContent||''))scheduleForceReconcile(250);}).observe(status,{childList:true,characterData:true,subtree:true});
   }
-  window.addEventListener('focus',()=>{
-    clearTimeout(focusTimer);
-    focusTimer=setTimeout(()=>{if(!editorOpen())reconcile();},1500);
-  });
+  window.addEventListener('focus',()=>scheduleForceReconcile(300));
+  window.addEventListener('pageshow',()=>scheduleForceReconcile(150));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')scheduleForceReconcile(150);});
 }
-window.plantdexReconcile=reconcile;
+window.plantdexReconcile=()=>reconcile(true);
 start();
 })();
