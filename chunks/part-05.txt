@@ -294,17 +294,10 @@ render();
 /* Deep-link support for NFC tags and QR codes. */
 const requestedPlantId = new URLSearchParams(window.location.search).get("plant");
 if(requestedPlantId && plants.some(p => p.id === requestedPlantId)){
-  window.viewProfile(requestedPlantId);
   const requestedPlant = plants.find(p => p.id === requestedPlantId);
-  if(requestedPlant && !requestedPlant.photo){
-    const publicPhotoUrl = `https://twemhhiyywhogaxvlnwz.supabase.co/storage/v1/object/public/plantdex-photos/31c7e5d2-dfbb-4ee3-8e7e-b4830bc8b03e/${encodeURIComponent(requestedPlantId)}/main.jpg`;
-    const probe = new Image();
-    probe.onload = () => {
-      requestedPlant.photo = publicPhotoUrl;
-      if(activeProfileId === requestedPlantId) renderProfile();
-    };
-    probe.src = publicPhotoUrl;
-  }
+  const publicPhotoUrl = `https://twemhhiyywhogaxvlnwz.supabase.co/storage/v1/object/public/plantdex-photos/31c7e5d2-dfbb-4ee3-8e7e-b4830bc8b03e/${encodeURIComponent(requestedPlantId)}/main.jpg?v=public-nfc-2`;
+  if(requestedPlant) requestedPlant.photo = publicPhotoUrl;
+  window.viewProfile(requestedPlantId);
 }
 </script>
 </body>
