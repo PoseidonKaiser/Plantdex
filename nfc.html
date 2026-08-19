@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Opening Plantdex…</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,sans-serif;background:#f4f7f2;color:#183126}.card{padding:28px 32px;border-radius:18px;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.08);text-align:center}</style>
+</head>
+<body>
+<div class="card">🌿 Opening Plantdex…</div>
+<script>
+(function(){
+  const params=new URLSearchParams(location.search);
+  const plant=params.get('plant');
+  const target=new URL('./',location.href);
+  if(plant)target.searchParams.set('plant',plant);
+  target.searchParams.set('tap',Date.now().toString());
+  location.replace(target.toString());
+})();
+</script>
+</body>
+</html>
