@@ -5,6 +5,13 @@ const LOCAL_KEY='plantCollectionTracker_profiles_v8';
 let busy=false,lastRun=0,focusTimer=null;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function editorOpen(){return !!document.querySelector('dialog[open]');}
+function hidePriceColumn(){
+  if(document.getElementById('plantdexHidePrice'))return;
+  const style=document.createElement('style');
+  style.id='plantdexHidePrice';
+  style.textContent='.table-wrap table th:nth-child(11),.table-wrap table td:nth-child(11){display:none!important;}';
+  document.head.appendChild(style);
+}
 async function signedPhoto(client,path){
   if(!path)return '';
   const {data,error}=await client.storage.from('plantdex-photos').createSignedUrl(path,604800);
@@ -31,6 +38,7 @@ function refreshOpenProfile(){
   }catch(e){console.warn('Plantdex profile refresh skipped',e);}
 }
 async function reconcile(force=false){
+  hidePriceColumn();
   if(editorOpen()||busy||(!force&&Date.now()-lastRun<800))return;
   if(!window.supabase||typeof plants==='undefined'||typeof render!=='function')return;
   busy=true;
@@ -55,8 +63,9 @@ async function reconcile(force=false){
     plants.splice(0,plants.length,...next);
     localStorage.setItem(LOCAL_KEY,JSON.stringify(plants));
     render();
+    hidePriceColumn();
     refreshOpenProfile();
-    requestAnimationFrame(()=>{render();refreshOpenProfile();});
+    requestAnimationFrame(()=>{render();hidePriceColumn();refreshOpenProfile();});
     lastRun=Date.now();
   }catch(e){console.warn('Plantdex reconciliation skipped',e);}
   finally{busy=false;}
@@ -66,6 +75,7 @@ function scheduleForceReconcile(delay=150){
   focusTimer=setTimeout(()=>{if(!editorOpen())reconcile(true);},delay);
 }
 async function start(){
+  hidePriceColumn();
   for(let i=0;i<80&&!window.supabase;i++)await sleep(100);
   await sleep(400);
   await reconcile(true);
