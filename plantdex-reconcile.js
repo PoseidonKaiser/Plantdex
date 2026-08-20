@@ -99,12 +99,34 @@ function applyDarkTheme(){
     .gallery-remove{background:rgba(20,29,23,.92)!important;color:#ffaaaa!important;border:1px solid #38483e!important}
     .photo-carousel-overlay{background:rgba(3,7,5,.96)!important}
     .photo-carousel-close,.photo-carousel-arrow{background:rgba(20,29,23,.82)!important;color:#eef7f0!important;border:1px solid rgba(255,255,255,.12)!important}
+    #nfcProfileCard{padding:0!important;overflow:hidden}
+    #nfcProfileCard .nfc-collapse-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;background:transparent!important;color:var(--ink)!important;border:0!important;padding:18px;text-align:left;border-radius:0!important}
+    #nfcProfileCard .nfc-collapse-toggle:hover{transform:none!important;background:#162019!important}
+    #nfcProfileCard .nfc-collapse-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1.05rem}
+    #nfcProfileCard .nfc-collapse-chevron{font-size:1.15rem;color:var(--muted);transition:transform .2s ease}
+    #nfcProfileCard.nfc-open .nfc-collapse-chevron{transform:rotate(180deg)}
+    #nfcProfileCard .nfc-collapse-body{display:none;padding:0 18px 18px}
+    #nfcProfileCard.nfc-open .nfc-collapse-body{display:block}
     ::-webkit-scrollbar{width:11px;height:11px}
     ::-webkit-scrollbar-track{background:#0d1510}
     ::-webkit-scrollbar-thumb{background:#34463a;border-radius:999px;border:2px solid #0d1510}
     ::-webkit-scrollbar-thumb:hover{background:#445a4a}
   `;
   document.head.appendChild(style);
+}
+function makeNfcCollapsible(){
+  const card=document.getElementById('nfcProfileCard');
+  if(!card)return;
+  if(card.dataset.collapsibleReady==='true')return;
+  const original=card.innerHTML;
+  card.dataset.collapsibleReady='true';
+  card.classList.remove('nfc-open');
+  card.innerHTML=`<button class="nfc-collapse-toggle" type="button" aria-expanded="false"><span class="nfc-collapse-title">🏷️ NFC / QR Profile</span><span class="nfc-collapse-chevron">⌄</span></button><div class="nfc-collapse-body">${original.replace(/^\s*<h3>🏷️ NFC \/ QR Profile<\/h3>/,'')}</div>`;
+  const toggle=card.querySelector('.nfc-collapse-toggle');
+  toggle.addEventListener('click',()=>{
+    const open=card.classList.toggle('nfc-open');
+    toggle.setAttribute('aria-expanded',String(open));
+  });
 }
 function getAccessToken(){
   try{
@@ -151,12 +173,16 @@ async function hydrateGalleryNode(token,node,paths){
 }
 function refreshOpenProfile(){
   try{
-    if(typeof activeProfileId!=='undefined'&&activeProfileId&&typeof renderProfile==='function')renderProfile();
+    if(typeof activeProfileId!=='undefined'&&activeProfileId&&typeof renderProfile==='function'){
+      renderProfile();
+      requestAnimationFrame(makeNfcCollapsible);
+    }
   }catch(e){console.warn('Plantdex profile refresh skipped',e);}
 }
 async function reconcile(force=false){
   hidePriceColumn();
   applyDarkTheme();
+  makeNfcCollapsible();
   if(editorOpen()||busy||(!force&&Date.now()-lastRun<800))return;
   if(typeof plants==='undefined'||typeof render!=='function')return;
   const token=getAccessToken();
@@ -180,7 +206,7 @@ async function reconcile(force=false){
     hidePriceColumn();
     applyDarkTheme();
     refreshOpenProfile();
-    requestAnimationFrame(()=>{render();hidePriceColumn();applyDarkTheme();refreshOpenProfile();});
+    requestAnimationFrame(()=>{render();hidePriceColumn();applyDarkTheme();refreshOpenProfile();makeNfcCollapsible();});
     lastRun=Date.now();
     const status=document.getElementById('cloudStatus');
     if(status)status.textContent='☁️ Synced';
@@ -194,9 +220,12 @@ function scheduleForceReconcile(delay=150){
 async function start(){
   hidePriceColumn();
   applyDarkTheme();
+  const observer=new MutationObserver(()=>makeNfcCollapsible());
+  observer.observe(document.body,{childList:true,subtree:true});
   for(let i=0;i<100&&!getAccessToken();i++)await sleep(100);
   await sleep(250);
   await reconcile(true);
+  makeNfcCollapsible();
   const status=document.getElementById('cloudStatus');
   if(status){
     new MutationObserver(()=>{if(/Synced/.test(status.textContent||''))scheduleForceReconcile(150);}).observe(status,{childList:true,characterData:true,subtree:true});
