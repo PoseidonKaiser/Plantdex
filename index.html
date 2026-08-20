@@ -37,6 +37,125 @@
     html=html.replace('p.gallery.unshift({\n    src,\n    date: document.getElementById("galleryDate").value || new Date().toISOString().slice(0,10),\n    note: ""\n  });', 'p.gallery.unshift({\n    src,\n    date: document.getElementById("galleryDate").value || new Date().toISOString().slice(0,10),\n    note: ""\n  });\n  p.galleryCloudPaths = Array.isArray(p.galleryCloudPaths) ? p.galleryCloudPaths : [];\n  p.galleryCloudPaths.unshift(null);');
     html=html.replace('["Health", p.health || "Good"]', '["Health", p.health || "Good"],\n    ["Number of Leaves", p.numberLeaves],\n    ["Leaf 👀", p.leafEye ? "Yes" : "No"]');
     html=html.replace('Your data is stored in this browser using local storage.', 'Plantdex keeps a local cache in this browser and securely syncs your collection and photos through Supabase when signed in.');
+
+    const carouselCss=`
+    .gallery-item img{cursor:zoom-in;transition:transform .18s ease,box-shadow .18s ease}
+    .gallery-item img:hover{transform:scale(1.02);box-shadow:0 8px 22px rgba(20,45,32,.14)}
+    .photo-carousel-overlay[hidden]{display:none!important}
+    .photo-carousel-overlay{position:fixed;inset:0;z-index:9999;background:rgba(7,14,10,.94);display:flex;align-items:center;justify-content:center;padding:18px;touch-action:pan-y}
+    .photo-carousel-stage{width:min(1100px,100%);height:min(86vh,900px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px;position:relative}
+    .photo-carousel-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:white}
+    .photo-carousel-meta{font-size:.9rem;font-weight:750;opacity:.9}
+    .photo-carousel-close,.photo-carousel-arrow{border:0;background:rgba(255,255,255,.14);color:white;backdrop-filter:blur(8px)}
+    .photo-carousel-close{font-size:1.2rem;padding:9px 12px}
+    .photo-carousel-image-wrap{min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:18px}
+    .photo-carousel-image{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:14px;user-select:none;-webkit-user-drag:none}
+    .photo-carousel-arrow{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:999px;font-size:1.6rem;display:grid;place-items:center;z-index:2}
+    .photo-carousel-arrow:hover{transform:translateY(-50%) scale(1.04)}
+    .photo-carousel-prev{left:10px}.photo-carousel-next{right:10px}
+    .photo-carousel-bottom{text-align:center;color:white;min-height:24px;font-size:.92rem;font-weight:700}
+    @media(max-width:650px){.photo-carousel-overlay{padding:10px}.photo-carousel-stage{height:92vh}.photo-carousel-arrow{width:42px;height:42px}.photo-carousel-prev{left:4px}.photo-carousel-next{right:4px}}
+    `;
+    html=html.replace('</style>',carouselCss+'</style>');
+
+    const carouselScript=`
+let photoCarouselIndex = 0;
+let photoCarouselTouchX = null;
+
+function ensurePhotoCarousel(){
+  let overlay = document.getElementById("photoCarouselOverlay");
+  if(overlay) return overlay;
+  overlay = document.createElement("div");
+  overlay.id = "photoCarouselOverlay";
+  overlay.className = "photo-carousel-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = \`<div class="photo-carousel-stage" role="dialog" aria-modal="true" aria-label="Photo timeline viewer">
+    <div class="photo-carousel-top">
+      <div class="photo-carousel-meta" id="photoCarouselMeta"></div>
+      <button class="photo-carousel-close" type="button" aria-label="Close photo viewer">✕</button>
+    </div>
+    <div class="photo-carousel-image-wrap">
+      <button class="photo-carousel-arrow photo-carousel-prev" type="button" aria-label="Previous photo">‹</button>
+      <img class="photo-carousel-image" id="photoCarouselImage" alt="Plant progress photo">
+      <button class="photo-carousel-arrow photo-carousel-next" type="button" aria-label="Next photo">›</button>
+    </div>
+    <div class="photo-carousel-bottom" id="photoCarouselDate"></div>
+  </div>\`;
+  document.body.appendChild(overlay);
+  overlay.querySelector(".photo-carousel-close").addEventListener("click", closePhotoCarousel);
+  overlay.querySelector(".photo-carousel-prev").addEventListener("click", ()=>stepPhotoCarousel(-1));
+  overlay.querySelector(".photo-carousel-next").addEventListener("click", ()=>stepPhotoCarousel(1));
+  overlay.addEventListener("click", e=>{ if(e.target === overlay) closePhotoCarousel(); });
+  overlay.addEventListener("touchstart", e=>{ photoCarouselTouchX = e.changedTouches[0]?.clientX ?? null; }, {passive:true});
+  overlay.addEventListener("touchend", e=>{
+    if(photoCarouselTouchX === null) return;
+    const endX = e.changedTouches[0]?.clientX ?? photoCarouselTouchX;
+    const dx = endX - photoCarouselTouchX;
+    photoCarouselTouchX = null;
+    if(Math.abs(dx) > 45) stepPhotoCarousel(dx < 0 ? 1 : -1);
+  }, {passive:true});
+  return overlay;
+}
+
+function showPhotoCarousel(){
+  const p = profilePlant();
+  const gallery = p?.gallery || [];
+  if(!gallery.length) return;
+  photoCarouselIndex = ((photoCarouselIndex % gallery.length) + gallery.length) % gallery.length;
+  const g = gallery[photoCarouselIndex];
+  const overlay = ensurePhotoCarousel();
+  document.getElementById("photoCarouselImage").src = g.src;
+  document.getElementById("photoCarouselImage").alt = \`${p.nickname || p.type || "Plant"} progress photo ${photoCarouselIndex + 1}\`;
+  document.getElementById("photoCarouselMeta").textContent = \`${photoCarouselIndex + 1} of ${gallery.length}\`;
+  document.getElementById("photoCarouselDate").textContent = g.date ? fmtDate(g.date) : "Undated";
+  const navDisplay = gallery.length > 1 ? "grid" : "none";
+  overlay.querySelector(".photo-carousel-prev").style.display = navDisplay;
+  overlay.querySelector(".photo-carousel-next").style.display = navDisplay;
+}
+
+window.openPhotoCarousel = index => {
+  const gallery = profilePlant()?.gallery || [];
+  if(!gallery.length) return;
+  photoCarouselIndex = Math.max(0,Math.min(index,gallery.length-1));
+  const overlay = ensurePhotoCarousel();
+  overlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  showPhotoCarousel();
+  overlay.querySelector(".photo-carousel-close").focus();
+};
+
+window.closePhotoCarousel = () => {
+  const overlay = document.getElementById("photoCarouselOverlay");
+  if(overlay) overlay.hidden = true;
+  document.body.style.overflow = "";
+};
+
+window.stepPhotoCarousel = delta => {
+  const gallery = profilePlant()?.gallery || [];
+  if(gallery.length < 2) return;
+  photoCarouselIndex = (photoCarouselIndex + delta + gallery.length) % gallery.length;
+  showPhotoCarousel();
+};
+
+document.addEventListener("click", e=>{
+  const img = e.target.closest("#profileGallery .gallery-item img");
+  if(!img) return;
+  const item = img.closest(".gallery-item");
+  const items = [...document.querySelectorAll("#profileGallery .gallery-item")];
+  const index = items.indexOf(item);
+  if(index >= 0) openPhotoCarousel(index);
+});
+
+document.addEventListener("keydown", e=>{
+  const overlay = document.getElementById("photoCarouselOverlay");
+  if(!overlay || overlay.hidden) return;
+  if(e.key === "Escape") closePhotoCarousel();
+  if(e.key === "ArrowLeft") stepPhotoCarousel(-1);
+  if(e.key === "ArrowRight") stepPhotoCarousel(1);
+});
+`;
+    html=html.replace('\nrender();\n','\n'+carouselScript+'\nrender();\n');
+
     const storageKey='plantCollectionTracker_profiles_v8';
     if(!localStorage.getItem(storageKey)) localStorage.setItem(storageKey,JSON.stringify(seedPlants));
     const authBar='<div class="cloudbar" id="cloudBar"><input id="cloudEmail" type="email" autocomplete="email" placeholder="Email"><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"><button class="primary" id="cloudSignIn" type="button">Sign in</button><button class="secondary" id="cloudSignUp" type="button">Create account</button><button class="primary" id="cloudSetPassword" type="button" style="display:none">Set new password</button><button class="cloud-forgot" id="cloudForgot" type="button">Forgot password?</button><button class="secondary" id="cloudLogout" type="button" style="display:none">Sign out</button><span class="cloudstatus" id="cloudStatus">Loading cloud sync…</span></div>';
