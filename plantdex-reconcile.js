@@ -13,6 +13,99 @@ function hidePriceColumn(){
   style.textContent='.table-wrap table th:nth-child(11),.table-wrap table td:nth-child(11){display:none!important;}';
   document.head.appendChild(style);
 }
+function applyDarkTheme(){
+  if(document.getElementById('plantdexDarkTheme'))return;
+  document.documentElement.style.colorScheme='dark';
+  const style=document.createElement('style');
+  style.id='plantdexDarkTheme';
+  style.textContent=`
+    :root{
+      --bg:#0b120e!important;
+      --card:#141d17!important;
+      --ink:#e8f2eb!important;
+      --muted:#9bada1!important;
+      --line:#2b3a31!important;
+      --green:#81c99a!important;
+      --green2:#1d3527!important;
+      --accent:#76b98c!important;
+      --warn:#3c2e18!important;
+      --danger:#ff9898!important;
+      --shadow:0 16px 38px rgba(0,0,0,.34)!important;
+    }
+    html{background:#0b120e!important;color-scheme:dark}
+    body{
+      color:var(--ink)!important;
+      background:
+        radial-gradient(circle at 5% 0%,rgba(52,101,70,.22) 0,transparent 28%),
+        radial-gradient(circle at 95% 0%,rgba(38,77,53,.17) 0,transparent 27%),
+        var(--bg)!important;
+    }
+    .panel,.stat,.profile-shell,.profile-card{background:#141d17!important;border-color:var(--line)!important}
+    .panel{background:rgba(20,29,23,.96)!important}
+    .stat,.profile-shell,.panel{box-shadow:var(--shadow)!important}
+    .table-wrap{border-color:var(--line)!important;background:#101713!important}
+    table{background:#101713!important;color:var(--ink)!important}
+    th{background:#18221b!important;color:#a9b9af!important;border-color:var(--line)!important}
+    td{background:#101713!important;border-color:var(--line)!important}
+    tr:hover td{background:#18221b!important}
+    input,select,textarea{
+      background:#0f1712!important;
+      color:var(--ink)!important;
+      border-color:#34453a!important;
+    }
+    input::placeholder,textarea::placeholder{color:#718279!important}
+    select option{background:#101713;color:var(--ink)}
+    input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(118,185,140,.16)!important}
+    label{color:#b8c6bd!important}
+    .secondary,.file-label{
+      background:#18221b!important;
+      color:#a4ddb6!important;
+      border-color:#34453a!important;
+    }
+    .secondary:hover,.file-label:hover{background:#1e2b22!important}
+    .primary{background:#78be90!important;color:#09120c!important}
+    .primary:hover{background:#8bcea0!important}
+    .danger{background:#351d20!important;color:#ffaaaa!important}
+    .favorite-btn{background:#302718!important;color:#f0cf82!important}
+    .badge{background:#1d3527!important;color:#9bd9ae!important}
+    .badge.warn{background:#3c2e18!important;color:#f1c572!important}
+    .health-Thriving{background:#173824!important;color:#9ce0b1!important}
+    .health-Good{background:#24331e!important;color:#b7d799!important}
+    .health-Watch{background:#3c2e18!important;color:#f1c572!important}
+    .health-Rehab{background:#3b2023!important;color:#ffaaaa!important}
+    .empty{background:#101713!important;color:var(--muted)!important}
+    .details,.sub,.note,.timeline-date,.timeline-note,.gallery-date,.profile-sub{color:var(--muted)!important}
+    .nickname{color:#91d3a6!important}
+    .plant-photo{background:#111a14!important;border-color:var(--line)!important}
+    .photo-placeholder,.profile-hero-placeholder{background:#101713!important;border-color:#3a4b40!important}
+    .photo-preview img,.profile-hero,.gallery-item img{border-color:var(--line)!important}
+    dialog{background:#141d17!important;color:var(--ink)!important;box-shadow:0 28px 90px rgba(0,0,0,.62)!important}
+    dialog::backdrop{background:rgba(3,8,5,.78)!important}
+    .modal{background:#141d17!important}
+    .modal p{color:var(--muted)!important}
+    .profile-header{
+      background:linear-gradient(135deg,#17231b,#101813)!important;
+      border-color:var(--line)!important;
+    }
+    .profile-card{background:#111914!important}
+    .timeline-item{background:#101713!important;border-color:var(--line)!important}
+    .cloudbar{
+      background:#111b15!important;
+      border-color:#2e4034!important;
+      box-shadow:0 10px 28px rgba(0,0,0,.18);
+    }
+    .cloudstatus{color:#a6b7ac!important}
+    .cloud-forgot{color:#91d3a6!important}
+    .gallery-remove{background:rgba(20,29,23,.92)!important;color:#ffaaaa!important;border:1px solid #38483e!important}
+    .photo-carousel-overlay{background:rgba(3,7,5,.96)!important}
+    .photo-carousel-close,.photo-carousel-arrow{background:rgba(20,29,23,.82)!important;color:#eef7f0!important;border:1px solid rgba(255,255,255,.12)!important}
+    ::-webkit-scrollbar{width:11px;height:11px}
+    ::-webkit-scrollbar-track{background:#0d1510}
+    ::-webkit-scrollbar-thumb{background:#34463a;border-radius:999px;border:2px solid #0d1510}
+    ::-webkit-scrollbar-thumb:hover{background:#445a4a}
+  `;
+  document.head.appendChild(style);
+}
 function getAccessToken(){
   try{
     const raw=localStorage.getItem(AUTH_KEY);
@@ -63,6 +156,7 @@ function refreshOpenProfile(){
 }
 async function reconcile(force=false){
   hidePriceColumn();
+  applyDarkTheme();
   if(editorOpen()||busy||(!force&&Date.now()-lastRun<800))return;
   if(typeof plants==='undefined'||typeof render!=='function')return;
   const token=getAccessToken();
@@ -84,8 +178,9 @@ async function reconcile(force=false){
     localStorage.setItem(LOCAL_KEY,JSON.stringify(plants));
     render();
     hidePriceColumn();
+    applyDarkTheme();
     refreshOpenProfile();
-    requestAnimationFrame(()=>{render();hidePriceColumn();refreshOpenProfile();});
+    requestAnimationFrame(()=>{render();hidePriceColumn();applyDarkTheme();refreshOpenProfile();});
     lastRun=Date.now();
     const status=document.getElementById('cloudStatus');
     if(status)status.textContent='☁️ Synced';
@@ -98,6 +193,7 @@ function scheduleForceReconcile(delay=150){
 }
 async function start(){
   hidePriceColumn();
+  applyDarkTheme();
   for(let i=0;i<100&&!getAccessToken();i++)await sleep(100);
   await sleep(250);
   await reconcile(true);
