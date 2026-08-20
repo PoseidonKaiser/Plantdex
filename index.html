@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plantdex</title>
-<style>body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f4f7f2;color:#183126;display:grid;place-items:center;min-height:100vh}.loading{background:#fff;padding:30px 34px;border-radius:20px;box-shadow:0 14px 34px rgba(32,67,49,.10);text-align:center}.leaf{font-size:2rem}</style>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;color:#e8f2eb;display:grid;place-items:center;min-height:100vh}
+.loading{background:#141d17;padding:30px 34px;border:1px solid #2b3a31;border-radius:20px;box-shadow:0 14px 34px rgba(0,0,0,.34);text-align:center}
+.leaf{font-size:2rem}
+</style>
 </head>
 <body>
 <div class="loading"><div class="leaf">🌿</div><strong>Loading Plantdex…</strong></div>
@@ -15,15 +19,32 @@
     const responses=await Promise.all(files.map(f=>fetch(f,{cache:'no-store'})));
     if(responses.some(r=>!r.ok)) throw new Error('A Plantdex source file could not be loaded.');
     let html=(await Promise.all(responses.map(r=>r.text()))).join('');
+
     const csv=await (await fetch('data/Plant%20Collection(4).csv',{cache:'no-store'})).text();
     const rows=csv.split(/\r?\n/).slice(1).map(line=>line.split(','));
     const dataRows=rows.filter(c=>c[2]&&c[2].trim());
     const importedMatch=html.match(/const IMPORTED_PLANTS = (\[.*?\]);\nlet plants/s);
     if(!importedMatch) throw new Error('Plant database could not be located.');
+
     const seedPlants=JSON.parse(importedMatch[1]);
     const genusMap={Philodendron:'Philodendron / Araceae',Monstera:'Monstera / Araceae',Hoya:'Hoya / Apocynaceae',Suculents:'Succulent',Pothos:'Epipremnum / Araceae',Ferns:'Fern',Fruiting:'Edible / Fruiting',Misc:'Miscellaneous',Syngonium:'Syngonium / Araceae',Alocasia:'Alocasia / Araceae'};
     const pad=n=>String(n).padStart(2,'0');
-    dataRows.forEach((c,i)=>{if(!seedPlants[i])return;const p=seedPlants[i];p.genus=genusMap[(c[1]||'').trim()]||p.genus||'';p.type=(c[2]||'').trim();p.nickname=(c[4]||'').trim();p.source=(c[5]||'').trim();const when=(c[6]||'').trim();if(when){const [m,d]=when.split('/').map(Number);if(m&&d)p.dateAcquired=`2026-${pad(m)}-${pad(d)}`;}p.price=(c[7]||'').trim();p.location=(c[8]||'').trim();p.potSize=(c[9]||'').trim();p.numberLeaves=(c[10]||'').trim()?Number(c[10]):'';p.leafEye=((c[11]||'').trim().toUpperCase()==='TRUE');});
+    dataRows.forEach((c,i)=>{
+      if(!seedPlants[i])return;
+      const plant=seedPlants[i];
+      plant.genus=genusMap[(c[1]||'').trim()]||plant.genus||'';
+      plant.type=(c[2]||'').trim();
+      plant.nickname=(c[4]||'').trim();
+      plant.source=(c[5]||'').trim();
+      const when=(c[6]||'').trim();
+      if(when){const [m,d]=when.split('/').map(Number);if(m&&d)plant.dateAcquired=`2026-${pad(m)}-${pad(d)}`;}
+      plant.price=(c[7]||'').trim();
+      plant.location=(c[8]||'').trim();
+      plant.potSize=(c[9]||'').trim();
+      plant.numberLeaves=(c[10]||'').trim()?Number(c[10]):'';
+      plant.leafEye=((c[11]||'').trim().toUpperCase()==='TRUE');
+    });
+
     html=html.replace(importedMatch[1],JSON.stringify(seedPlants));
     html=html.replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8');
     html=html.replace('.plant-name{font-weight:800}', '.plant-name{font-weight:800}\n    .photo-link{border:0;background:transparent;padding:0;cursor:pointer;border-radius:12px}\n    .cloudbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;background:#eef6ef;border:1px solid var(--line);border-radius:14px}.cloudbar input{max-width:240px}.cloudstatus{font-size:.85rem;color:var(--muted);font-weight:700}.cloud-forgot{background:transparent;border:0;color:var(--green);padding:7px 8px;font-size:.85rem}');
@@ -38,134 +59,31 @@
     html=html.replace('["Health", p.health || "Good"]', '["Health", p.health || "Good"],\n    ["Number of Leaves", p.numberLeaves],\n    ["Leaf 👀", p.leafEye ? "Yes" : "No"]');
     html=html.replace('Your data is stored in this browser using local storage.', 'Plantdex keeps a local cache in this browser and securely syncs your collection and photos through Supabase when signed in.');
 
-    const carouselCss=`
-    .gallery-item img{cursor:zoom-in;transition:transform .18s ease,box-shadow .18s ease}
-    .gallery-item img:hover{transform:scale(1.02);box-shadow:0 8px 22px rgba(20,45,32,.14)}
-    .photo-carousel-overlay[hidden]{display:none!important}
-    .photo-carousel-overlay{position:fixed;inset:0;z-index:9999;background:rgba(7,14,10,.94);display:flex;align-items:center;justify-content:center;padding:18px;touch-action:pan-y}
-    .photo-carousel-stage{width:min(1100px,100%);height:min(86vh,900px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px;position:relative}
-    .photo-carousel-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:white}
-    .photo-carousel-meta{font-size:.9rem;font-weight:750;opacity:.9}
-    .photo-carousel-close,.photo-carousel-arrow{border:0;background:rgba(255,255,255,.14);color:white;backdrop-filter:blur(8px)}
-    .photo-carousel-close{font-size:1.2rem;padding:9px 12px}
-    .photo-carousel-image-wrap{min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:18px}
-    .photo-carousel-image{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:14px;user-select:none;-webkit-user-drag:none}
-    .photo-carousel-arrow{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:999px;font-size:1.6rem;display:grid;place-items:center;z-index:2}
-    .photo-carousel-arrow:hover{transform:translateY(-50%) scale(1.04)}
-    .photo-carousel-prev{left:10px}.photo-carousel-next{right:10px}
-    .photo-carousel-bottom{text-align:center;color:white;min-height:24px;font-size:.92rem;font-weight:700}
-    @media(max-width:650px){.photo-carousel-overlay{padding:10px}.photo-carousel-stage{height:92vh}.photo-carousel-arrow{width:42px;height:42px}.photo-carousel-prev{left:4px}.photo-carousel-next{right:4px}}
-    `;
+    const carouselCss='\n.gallery-item img{cursor:zoom-in;transition:transform .18s ease,box-shadow .18s ease}\n.gallery-item img:hover{transform:scale(1.02);box-shadow:0 8px 22px rgba(0,0,0,.28)}\n.photo-carousel-overlay[hidden]{display:none!important}\n.photo-carousel-overlay{position:fixed;inset:0;z-index:9999;background:rgba(3,7,5,.96);display:flex;align-items:center;justify-content:center;padding:18px;touch-action:pan-y}\n.photo-carousel-stage{width:min(1100px,100%);height:min(86vh,900px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px;position:relative}\n.photo-carousel-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:white}\n.photo-carousel-meta{font-size:.9rem;font-weight:750;opacity:.9}\n.photo-carousel-close,.photo-carousel-arrow{border:1px solid rgba(255,255,255,.12);background:rgba(20,29,23,.82);color:#eef7f0;backdrop-filter:blur(8px)}\n.photo-carousel-close{font-size:1.2rem;padding:9px 12px}\n.photo-carousel-image-wrap{min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border-radius:18px}\n.photo-carousel-image{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:14px;user-select:none;-webkit-user-drag:none}\n.photo-carousel-arrow{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:999px;font-size:1.6rem;display:grid;place-items:center;z-index:2}\n.photo-carousel-prev{left:10px}.photo-carousel-next{right:10px}\n.photo-carousel-bottom{text-align:center;color:white;min-height:24px;font-size:.92rem;font-weight:700}\n@media(max-width:650px){.photo-carousel-overlay{padding:10px}.photo-carousel-stage{height:92vh}.photo-carousel-arrow{width:42px;height:42px}.photo-carousel-prev{left:4px}.photo-carousel-next{right:4px}}\n';
     html=html.replace('</style>',carouselCss+'</style>');
 
-    const carouselScript=`
-let photoCarouselIndex = 0;
-let photoCarouselTouchX = null;
-
-function ensurePhotoCarousel(){
-  let overlay = document.getElementById("photoCarouselOverlay");
-  if(overlay) return overlay;
-  overlay = document.createElement("div");
-  overlay.id = "photoCarouselOverlay";
-  overlay.className = "photo-carousel-overlay";
-  overlay.hidden = true;
-  overlay.innerHTML = \`<div class="photo-carousel-stage" role="dialog" aria-modal="true" aria-label="Photo timeline viewer">
-    <div class="photo-carousel-top">
-      <div class="photo-carousel-meta" id="photoCarouselMeta"></div>
-      <button class="photo-carousel-close" type="button" aria-label="Close photo viewer">✕</button>
-    </div>
-    <div class="photo-carousel-image-wrap">
-      <button class="photo-carousel-arrow photo-carousel-prev" type="button" aria-label="Previous photo">‹</button>
-      <img class="photo-carousel-image" id="photoCarouselImage" alt="Plant progress photo">
-      <button class="photo-carousel-arrow photo-carousel-next" type="button" aria-label="Next photo">›</button>
-    </div>
-    <div class="photo-carousel-bottom" id="photoCarouselDate"></div>
-  </div>\`;
-  document.body.appendChild(overlay);
-  overlay.querySelector(".photo-carousel-close").addEventListener("click", closePhotoCarousel);
-  overlay.querySelector(".photo-carousel-prev").addEventListener("click", ()=>stepPhotoCarousel(-1));
-  overlay.querySelector(".photo-carousel-next").addEventListener("click", ()=>stepPhotoCarousel(1));
-  overlay.addEventListener("click", e=>{ if(e.target === overlay) closePhotoCarousel(); });
-  overlay.addEventListener("touchstart", e=>{ photoCarouselTouchX = e.changedTouches[0]?.clientX ?? null; }, {passive:true});
-  overlay.addEventListener("touchend", e=>{
-    if(photoCarouselTouchX === null) return;
-    const endX = e.changedTouches[0]?.clientX ?? photoCarouselTouchX;
-    const dx = endX - photoCarouselTouchX;
-    photoCarouselTouchX = null;
-    if(Math.abs(dx) > 45) stepPhotoCarousel(dx < 0 ? 1 : -1);
-  }, {passive:true});
-  return overlay;
-}
-
-function showPhotoCarousel(){
-  const p = profilePlant();
-  const gallery = p?.gallery || [];
-  if(!gallery.length) return;
-  photoCarouselIndex = ((photoCarouselIndex % gallery.length) + gallery.length) % gallery.length;
-  const g = gallery[photoCarouselIndex];
-  const overlay = ensurePhotoCarousel();
-  document.getElementById("photoCarouselImage").src = g.src;
-  document.getElementById("photoCarouselImage").alt = \`${p.nickname || p.type || "Plant"} progress photo ${photoCarouselIndex + 1}\`;
-  document.getElementById("photoCarouselMeta").textContent = \`${photoCarouselIndex + 1} of ${gallery.length}\`;
-  document.getElementById("photoCarouselDate").textContent = g.date ? fmtDate(g.date) : "Undated";
-  const navDisplay = gallery.length > 1 ? "grid" : "none";
-  overlay.querySelector(".photo-carousel-prev").style.display = navDisplay;
-  overlay.querySelector(".photo-carousel-next").style.display = navDisplay;
-}
-
-window.openPhotoCarousel = index => {
-  const gallery = profilePlant()?.gallery || [];
-  if(!gallery.length) return;
-  photoCarouselIndex = Math.max(0,Math.min(index,gallery.length-1));
-  const overlay = ensurePhotoCarousel();
-  overlay.hidden = false;
-  document.body.style.overflow = "hidden";
-  showPhotoCarousel();
-  overlay.querySelector(".photo-carousel-close").focus();
-};
-
-window.closePhotoCarousel = () => {
-  const overlay = document.getElementById("photoCarouselOverlay");
-  if(overlay) overlay.hidden = true;
-  document.body.style.overflow = "";
-};
-
-window.stepPhotoCarousel = delta => {
-  const gallery = profilePlant()?.gallery || [];
-  if(gallery.length < 2) return;
-  photoCarouselIndex = (photoCarouselIndex + delta + gallery.length) % gallery.length;
-  showPhotoCarousel();
-};
-
-document.addEventListener("click", e=>{
-  const img = e.target.closest("#profileGallery .gallery-item img");
-  if(!img) return;
-  const item = img.closest(".gallery-item");
-  const items = [...document.querySelectorAll("#profileGallery .gallery-item")];
-  const index = items.indexOf(item);
-  if(index >= 0) openPhotoCarousel(index);
-});
-
-document.addEventListener("keydown", e=>{
-  const overlay = document.getElementById("photoCarouselOverlay");
-  if(!overlay || overlay.hidden) return;
-  if(e.key === "Escape") closePhotoCarousel();
-  if(e.key === "ArrowLeft") stepPhotoCarousel(-1);
-  if(e.key === "ArrowRight") stepPhotoCarousel(1);
-});
-`;
+    const carouselScript='\nlet photoCarouselIndex=0;\nlet photoCarouselTouchX=null;\nfunction ensurePhotoCarousel(){\n  let overlay=document.getElementById("photoCarouselOverlay");\n  if(overlay)return overlay;\n  overlay=document.createElement("div");\n  overlay.id="photoCarouselOverlay";\n  overlay.className="photo-carousel-overlay";\n  overlay.hidden=true;\n  overlay.innerHTML=`<div class="photo-carousel-stage" role="dialog" aria-modal="true" aria-label="Photo timeline viewer"><div class="photo-carousel-top"><div class="photo-carousel-meta" id="photoCarouselMeta"></div><button class="photo-carousel-close" type="button" aria-label="Close photo viewer">✕</button></div><div class="photo-carousel-image-wrap"><button class="photo-carousel-arrow photo-carousel-prev" type="button" aria-label="Previous photo">‹</button><img class="photo-carousel-image" id="photoCarouselImage" alt="Plant progress photo"><button class="photo-carousel-arrow photo-carousel-next" type="button" aria-label="Next photo">›</button></div><div class="photo-carousel-bottom" id="photoCarouselDate"></div></div>`;\n  document.body.appendChild(overlay);\n  overlay.querySelector(".photo-carousel-close").addEventListener("click",closePhotoCarousel);\n  overlay.querySelector(".photo-carousel-prev").addEventListener("click",()=>stepPhotoCarousel(-1));\n  overlay.querySelector(".photo-carousel-next").addEventListener("click",()=>stepPhotoCarousel(1));\n  overlay.addEventListener("click",e=>{if(e.target===overlay)closePhotoCarousel();});\n  overlay.addEventListener("touchstart",e=>{photoCarouselTouchX=e.changedTouches[0]?.clientX??null;},{passive:true});\n  overlay.addEventListener("touchend",e=>{if(photoCarouselTouchX===null)return;const endX=e.changedTouches[0]?.clientX??photoCarouselTouchX;const dx=endX-photoCarouselTouchX;photoCarouselTouchX=null;if(Math.abs(dx)>45)stepPhotoCarousel(dx<0?1:-1);},{passive:true});\n  return overlay;\n}\nfunction showPhotoCarousel(){\n  const plant=profilePlant();\n  const gallery=plant?.gallery||[];\n  if(!gallery.length)return;\n  photoCarouselIndex=((photoCarouselIndex%gallery.length)+gallery.length)%gallery.length;\n  const g=gallery[photoCarouselIndex];\n  const overlay=ensurePhotoCarousel();\n  const image=document.getElementById("photoCarouselImage");\n  image.src=g.src;\n  image.alt=(plant.nickname||plant.type||"Plant")+" progress photo "+(photoCarouselIndex+1);\n  document.getElementById("photoCarouselMeta").textContent=(photoCarouselIndex+1)+" of "+gallery.length;\n  document.getElementById("photoCarouselDate").textContent=g.date?fmtDate(g.date):"Undated";\n  const navDisplay=gallery.length>1?"grid":"none";\n  overlay.querySelector(".photo-carousel-prev").style.display=navDisplay;\n  overlay.querySelector(".photo-carousel-next").style.display=navDisplay;\n}\nwindow.openPhotoCarousel=index=>{const gallery=profilePlant()?.gallery||[];if(!gallery.length)return;photoCarouselIndex=Math.max(0,Math.min(index,gallery.length-1));const overlay=ensurePhotoCarousel();overlay.hidden=false;document.body.style.overflow="hidden";showPhotoCarousel();overlay.querySelector(".photo-carousel-close").focus();};\nwindow.closePhotoCarousel=()=>{const overlay=document.getElementById("photoCarouselOverlay");if(overlay)overlay.hidden=true;document.body.style.overflow="";};\nwindow.stepPhotoCarousel=delta=>{const gallery=profilePlant()?.gallery||[];if(gallery.length<2)return;photoCarouselIndex=(photoCarouselIndex+delta+gallery.length)%gallery.length;showPhotoCarousel();};\ndocument.addEventListener("click",e=>{const img=e.target.closest("#profileGallery .gallery-item img");if(!img)return;const item=img.closest(".gallery-item");const items=[...document.querySelectorAll("#profileGallery .gallery-item")];const index=items.indexOf(item);if(index>=0)openPhotoCarousel(index);});\ndocument.addEventListener("keydown",e=>{const overlay=document.getElementById("photoCarouselOverlay");if(!overlay||overlay.hidden)return;if(e.key==="Escape")closePhotoCarousel();if(e.key==="ArrowLeft")stepPhotoCarousel(-1);if(e.key==="ArrowRight")stepPhotoCarousel(1);});\n';
     html=html.replace('\nrender();\n','\n'+carouselScript+'\nrender();\n');
 
     const storageKey='plantCollectionTracker_profiles_v8';
     if(!localStorage.getItem(storageKey)) localStorage.setItem(storageKey,JSON.stringify(seedPlants));
+
     const authBar='<div class="cloudbar" id="cloudBar"><input id="cloudEmail" type="email" autocomplete="email" placeholder="Email"><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"><button class="primary" id="cloudSignIn" type="button">Sign in</button><button class="secondary" id="cloudSignUp" type="button">Create account</button><button class="primary" id="cloudSetPassword" type="button" style="display:none">Set new password</button><button class="cloud-forgot" id="cloudForgot" type="button">Forgot password?</button><button class="secondary" id="cloudLogout" type="button" style="display:none">Sign out</button><span class="cloudstatus" id="cloudStatus">Loading cloud sync…</span></div>';
     html=html.replace('<section class="stats">',authBar+'\n    <section class="stats">');
+
     const toolbarMatch=html.match(/\s*<div class="toolbar">[\s\S]*?<\/div>\s*(?=<div class="table-wrap">)/);
-    if(toolbarMatch){const toolbar=toolbarMatch[0];html=html.replace(toolbarMatch[0],'');html=html.replace('<section class="stats">',toolbar+'\n    <section class="stats">');}
-    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=fullsync-0818-racefix-3"></scr'+'ipt><scr'+'ipt src="plantdex-reconcile.js?v=0818-mobile-1"></scr'+'ipt>';
+    if(toolbarMatch){
+      const toolbar=toolbarMatch[0];
+      html=html.replace(toolbarMatch[0],'');
+      html=html.replace('<section class="stats">',toolbar+'\n    <section class="stats">');
+    }
+
+    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=fullsync-0818-racefix-3"></scr'+'ipt><scr'+'ipt src="plantdex-reconcile.js?v=0820-darkfix-1"></scr'+'ipt>';
     html=html.replace('</body>',cloudTag+'\n</body>');
     document.open();document.write(html);document.close();
-  }catch(err){document.body.innerHTML='<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>'+String(err&&err.message||err)+'</p></div>';}
+  }catch(err){
+    document.body.innerHTML='<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>'+String(err&&err.message||err)+'</p></div>';
+  }
 })();
 </script>
 </body>
