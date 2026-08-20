@@ -117,9 +117,8 @@ function applyDarkTheme(){
 function makeNfcCollapsible(){
   const card=document.getElementById('nfcProfileCard');
   if(!card)return;
-  if(card.dataset.collapsibleReady==='true')return;
+  if(card.querySelector('.nfc-collapse-toggle'))return;
   const original=card.innerHTML;
-  card.dataset.collapsibleReady='true';
   card.classList.remove('nfc-open');
   card.innerHTML=`<button class="nfc-collapse-toggle" type="button" aria-expanded="false"><span class="nfc-collapse-title">🏷️ NFC / QR Profile</span><span class="nfc-collapse-chevron">⌄</span></button><div class="nfc-collapse-body">${original.replace(/^\s*<h3>🏷️ NFC \/ QR Profile<\/h3>/,'')}</div>`;
   const toggle=card.querySelector('.nfc-collapse-toggle');
