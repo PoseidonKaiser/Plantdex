@@ -40,7 +40,7 @@ async function hydrate(t,node,paths){
 }
 const token=getToken();
 if(!token){location.replace('./?desktop2=signin');return;}
-const r=await fetch(SB_URL+'/rest/v1/plantdex_plants?select=local_id,data,photo_path&order=created_at.asc&cb='+Date.now(),{headers:hdr(token),cache:'no-store'});
+const r=await fetch(SB_URL+'/rest/v1/plantdex_plants?select=local_id,data,photo_path&order=created_at.asc',{headers:hdr(token),cache:'no-store'});
 if(!r.ok){msg.textContent='Cloud refresh failed ('+r.status+').';return;}
 const rows=await r.json();
 const cloud=[];
@@ -52,7 +52,7 @@ for(let i=0;i<rows.length;i++){
   cloud.push(p); msg.textContent='Loading '+(i+1)+' of '+rows.length+' plants…';
 }
 localStorage.setItem(LOCAL_KEY,JSON.stringify(cloud));
-frame.src='./?desktop2=1&v=20260828-countfix';
+frame.src='./?desktop2=1&v=20260828-countfix2';
 frame.onload=()=>{
   let tries=0;
   const force=()=>{
