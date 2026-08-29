@@ -26,12 +26,12 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Build static PlantDex
-        run: python3 scripts/build_static.py
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: '_site'
+          path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+# Restored original GitHub Pages + Supabase Plantdex frontend; deploy repository root.
