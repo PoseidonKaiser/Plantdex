@@ -1,4 +1,6 @@
 (function(){
+document.title="Kaiser's Plant Collection";
+const pageHeading=document.querySelector('h1');if(pageHeading)pageHeading.textContent="🌿 Kaiser's Plant Collection";
 const METHODS=['Top cutting','Mid cutting','Node','Division','Corm','Pup / offset','Leaf cutting','Stem cutting','Seed','Tissue culture','Other'];
 const STATUSES=['Rooting','Established','Transferred','Gifted','Sold','Failed'];
 let installed=false;
