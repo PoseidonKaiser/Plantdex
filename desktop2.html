@@ -56,13 +56,15 @@ try{
   localStorage.setItem(LOCAL_KEY,JSON.stringify(cloud));
   sessionStorage.setItem(FORCE_KEY,JSON.stringify(cloud));
   msg.textContent='Loaded '+cloud.length+' plants. Starting PlantDex…';
-  const ir=await fetch('./index.html?v=20260828-safariboot',{cache:'no-store'});
+  const ir=await fetch('./index.html?v=20260828-cloudfirst',{cache:'no-store'});
   if(!ir.ok)throw new Error('Could not load PlantDex app shell.');
   let loader=await ir.text();
   const needle="html=html.replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8');";
   const patch=needle+"\n    html=html.replace('let plants = loadPlants();', 'let plants = (()=>{try{const forced=JSON.parse(sessionStorage.getItem(\\\""+FORCE_KEY+"\\\")||\\\"[]\\\");return forced.length?forced:loadPlants();}catch(e){return loadPlants();}})();');";
   if(!loader.includes(needle))throw new Error('PlantDex startup marker was not found.');
   loader=loader.replace(needle,patch);
+  loader=loader.replace('plantdex-cloud.js?v=fullsync-0818-racefix-3','plantdex-cloud-v2.js?v=20260828-cloudfirst1');
+  loader=loader.replace('plantdex-reconcile.js?v=0820-darkfix-1','plantdex-reconcile.js?v=20260828-cloudfirst1');
   document.open();document.write(loader);document.close();
 }catch(e){console.error(e);msg.textContent=e.message||String(e);}
 })();
