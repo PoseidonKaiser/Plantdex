@@ -1,51 +1,8 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kaiser's Plant Collection</title>
-<style id="bootStyle">body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;color:#e8f2eb;display:grid;place-items:center;min-height:100vh}.loading{width:min(520px,calc(100% - 40px));background:#141d17;padding:28px 32px;border:1px solid #2b3a31;border-radius:20px;box-shadow:0 14px 34px rgba(0,0,0,.34);text-align:center}.leaf{font-size:2rem}.status{margin-top:10px;color:#a6b7ac}.error{color:#ffaaaa;white-space:pre-wrap;word-break:break-word}</style>
-</head>
-<body>
-<div class="loading"><div class="leaf">🌿</div><strong>Loading Kaiser's Plant Collection…</strong><div class="status" id="bootStatus">Starting…</div></div>
-<script>
-(async()=>{
- const status=m=>{const e=document.getElementById('bootStatus');if(e)e.textContent=m;};
- const rawBase='https://raw.githubusercontent.com/PoseidonKaiser/Plantdex/main/';
- async function fetchText(path,label){
-   status(label);
-   const c=new AbortController(),t=setTimeout(()=>c.abort(),6000);
-   try{const r=await fetch(path+'?v=dom3',{cache:'no-store',signal:c.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}
-   catch(e){status(label+' · fallback…');const r=await fetch(rawBase+path+'?v=dom3',{cache:'no-store'});if(!r.ok)throw new Error(label+' failed ('+r.status+')');return await r.text();}
-   finally{clearTimeout(t);}
- }
- try{
-   const files=Array.from({length:6},(_,i)=>`chunks/part-${String(i).padStart(2,'0')}.txt`);
-   const parts=[];for(let i=0;i<files.length;i++)parts.push(await fetchText(files[i],`Loading app ${i+1} of 6…`));
-   status('Building interface…');
-   let html=parts.join('').replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8');
-   html=html.replace('<title>My Plant Collection Tracker</title>',"<title>Kaiser's Plant Collection</title>");
-   html=html.replace('<h1>🌿 My Plant Collection</h1>',"<h1>🌿 Kaiser's Plant Collection</h1>");
-   const parsed=new DOMParser().parseFromString(html,'text/html');
-   const appScript=parsed.body.querySelector('script');
-   if(!appScript)throw new Error('App script missing.');
-   const styleNodes=[...parsed.head.querySelectorAll('style')].map(s=>s.textContent).join('\n');
-   document.getElementById('bootStyle')?.remove();
-   const style=document.createElement('style');style.textContent=styleNodes+'\n.cloudbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;background:#eef6ef;border:1px solid var(--line);border-radius:14px}.cloudbar input{max-width:240px}.cloudstatus{font-size:.85rem;color:var(--muted);font-weight:700}.cloud-forgot{background:transparent;border:0;color:var(--green);padding:7px 8px;font-size:.85rem}';document.head.appendChild(style);
-   document.title="Kaiser's Plant Collection";
-   const scriptText=appScript.textContent;
-   appScript.remove();
-   document.body.innerHTML=parsed.body.innerHTML;
-   const stats=document.querySelector('.stats');
-   if(!stats)throw new Error('App interface missing.');
-   const bar=document.createElement('div');bar.className='cloudbar';bar.id='cloudBar';bar.innerHTML='<input id="cloudEmail" type="email" autocomplete="email" placeholder="Email"><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"><button class="primary" id="cloudSignIn" type="button">Sign in</button><button class="secondary" id="cloudSignUp" type="button">Create account</button><button class="primary" id="cloudSetPassword" type="button" style="display:none">Set new password</button><button class="cloud-forgot" id="cloudForgot" type="button">Forgot password?</button><button class="secondary" id="cloudLogout" type="button" style="display:none">Sign out</button><span class="cloudstatus" id="cloudStatus">Loading cloud sync…</span>';
-   stats.parentNode.insertBefore(bar,stats);
-   status('Starting collection…');
-   const inline=document.createElement('script');inline.textContent=scriptText;document.body.appendChild(inline);
-   const sources=['plantdex-runtime-guard.js?v=dom3','plantdex-cloud-v2.js?v=20260828-mobile-savefix1','plantdex-pedigree.js?v=20260828-pedigree1','plantdex-reconcile.js?v=0820-darkfix-1'];
-   for(const src of sources){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error('Could not load '+src));document.body.appendChild(s);});}
- }catch(err){document.body.innerHTML='<div class="loading"><div class="leaf">⚠️</div><strong>Desktop PlantDex could not load.</strong><div class="status error">'+String(err&&err.message||err)+'</div></div>';}
-})();
-</script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kaiser's Plant Collection</title><style id="bootStyle">body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;color:#e8f2eb;display:grid;place-items:center;min-height:100vh}.loading{width:min(520px,calc(100% - 40px));background:#141d17;padding:28px 32px;border:1px solid #2b3a31;border-radius:20px;text-align:center}.leaf{font-size:2rem}.status{margin-top:10px;color:#a6b7ac}.error{color:#ffaaaa;white-space:pre-wrap}</style></head><body><div class="loading"><div class="leaf">🌿</div><strong>Loading Kaiser's Plant Collection…</strong><div class="status" id="bootStatus">Starting…</div></div><script>
+(async()=>{const status=m=>{const e=document.getElementById('bootStatus');if(e)e.textContent=m;};try{const files=Array.from({length:6},(_,i)=>`chunks/part-${String(i).padStart(2,'0')}.txt`),parts=[];for(let i=0;i<files.length;i++){status(`Loading app ${i+1} of 6…`);const r=await fetch(files[i]+'?v=dom4',{cache:'no-store'});if(!r.ok)throw new Error('Could not load app part '+(i+1));parts.push(await r.text());}status('Building interface…');let html=parts.join('').replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8').replace('<title>My Plant Collection Tracker</title>',"<title>Kaiser's Plant Collection</title>").replace('<h1>🌿 My Plant Collection</h1>',"<h1>🌿 Kaiser's Plant Collection</h1>");const parsed=new DOMParser().parseFromString(html,'text/html');const scripts=[...parsed.body.querySelectorAll('script')];if(!scripts.length)throw new Error('App script missing.');const scriptTexts=scripts.map(s=>s.textContent);scripts.forEach(s=>s.remove());const css=[...parsed.head.querySelectorAll('style')].map(s=>s.textContent).join('\n');document.getElementById('bootStyle')?.remove();const st=document.createElement('style');st.textContent=css+'\n.cloudbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;background:#eef6ef;border:1px solid var(--line);border-radius:14px}.cloudbar input{max-width:240px}.cloudstatus{font-size:.85rem;color:var(--muted);font-weight:700}.cloud-forgot{background:transparent;border:0;color:var(--green);padding:7px 8px;font-size:.85rem}';document.head.appendChild(st);document.title="Kaiser's Plant Collection";document.body.innerHTML=parsed.body.innerHTML;const stats=document.querySelector('.stats');if(!stats)throw new Error('App interface missing.');const bar=document.createElement('div');bar.className='cloudbar';bar.id='cloudBar';bar.innerHTML='<input id="cloudEmail" type="email" autocomplete="email" placeholder="Email"><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"><button class="primary" id="cloudSignIn" type="button">Sign in</button><button class="secondary" id="cloudSignUp" type="button">Create account</button><button class="primary" id="cloudSetPassword" type="button" style="display:none">Set new password</button><button class="cloud-forgot" id="cloudForgot" type="button">Forgot password?</button><button class="secondary" id="cloudLogout" type="button" style="display:none">Sign out</button><span class="cloudstatus" id="cloudStatus">Starting cloud sync…</span>';stats.parentNode.insertBefore(bar,stats);
+// Execute every original app script in source order. Using Function makes execution errors visible to this loader instead of silently aborting dynamic script insertion in Safari.
+for(const code of scriptTexts){(0,Function)(code)();}
+const sources=['plantdex-runtime-guard.js?v=dom4','plantdex-cloud-v2.js?v=dom4','plantdex-pedigree.js?v=dom4','plantdex-reconcile.js?v=dom4'];for(const src of sources){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error('Could not load '+src));document.body.appendChild(s);});}
+}catch(err){console.error(err);document.body.innerHTML='<div class="loading"><div class="leaf">⚠️</div><strong>Desktop PlantDex could not start.</strong><div class="status error">'+String(err&&err.message||err)+'</div></div>';}})();
+</script></body></html>
