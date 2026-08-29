@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PlantDex</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;color:#e8f2eb;display:grid;place-items:center;min-height:100vh}
+.loading{background:#141d17;padding:30px 34px;border:1px solid #2b3a31;border-radius:20px;box-shadow:0 14px 34px rgba(0,0,0,.34);text-align:center;max-width:520px}.leaf{font-size:2rem}.err{color:#ffb4b4;margin-top:10px;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="loading"><div class="leaf">🌿</div><strong>Loading PlantDex…</strong><div id="bootStatus" style="margin-top:8px;opacity:.75;font-size:.9rem">Preparing collection</div></div>
+<script>
+(async()=>{
+  const status=t=>{const e=document.getElementById('bootStatus');if(e)e.textContent=t;};
+  const loadScript=src=>new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('Could not load '+src));document.head.appendChild(s);});
+  try{
+    const files=Array.from({length:6},(_,i)=>`chunks/part-${String(i).padStart(2,'0')}.txt?v=live-1`);
+    status('Loading collection');
+    const responses=await Promise.all(files.map(f=>fetch(f,{cache:'no-store'})));
+    if(responses.some(r=>!r.ok))throw new Error('A PlantDex source file could not be loaded.');
+    let html=(await Promise.all(responses.map(r=>r.text()))).join('');
+    html=html.replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8');
+
+    const parsed=new DOMParser().parseFromString(html,'text/html');
+    const appScripts=[...parsed.querySelectorAll('script')].map(s=>({src:s.getAttribute('src'),text:s.textContent||''}));
+    parsed.querySelectorAll('script').forEach(s=>s.remove());
+
+    document.head.querySelectorAll('style[data-plantdex-app]').forEach(e=>e.remove());
+    parsed.head.querySelectorAll('style').forEach(st=>{const c=document.createElement('style');c.dataset.plantdexApp='1';c.textContent=st.textContent;document.head.appendChild(c);});
+    document.title="Kaiser's Plant Collection";
+    document.body.style.cssText='';
+    document.body.innerHTML=parsed.body.innerHTML;
+
+    const extraStyle=document.createElement('style');
+    extraStyle.textContent='.cloudbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;background:#eef6ef;border:1px solid var(--line);border-radius:14px;position:relative;z-index:20;pointer-events:auto}.cloudbar *{pointer-events:auto}.cloudbar input{max-width:240px}.cloudstatus{font-size:.85rem;color:var(--muted);font-weight:700}.cloud-forgot{background:transparent;border:0;color:var(--green);padding:7px 8px;font-size:.85rem}@media(max-width:700px){.cloudbar input{max-width:none;flex:1 1 140px}.cloudbar{align-items:stretch}.cloudbar button{flex:0 0 auto}}';
+    document.head.appendChild(extraStyle);
+
+    const stats=document.querySelector('.stats');
+    if(stats){
+      const bar=document.createElement('div');
+      bar.className='cloudbar';bar.id='cloudBar';
+      bar.innerHTML='<input id="cloudEmail" type="email" autocomplete="email" placeholder="Email"><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password"><button class="primary" id="cloudSignIn" type="button">Sign in</button><button class="secondary" id="cloudSignUp" type="button">Create account</button><button class="primary" id="cloudSetPassword" type="button" style="display:none">Set new password</button><button class="cloud-forgot" id="cloudForgot" type="button">Forgot password?</button><button class="secondary" id="cloudLogout" type="button" style="display:none">Sign out</button><span class="cloudstatus" id="cloudStatus">Starting cloud sync…</span>';
+      stats.parentNode.insertBefore(bar,stats);
+    }
+
+    status('Starting app');
+    for(const entry of appScripts){
+      if(entry.src){await loadScript(entry.src);continue;}
+      if(!entry.text.trim())continue;
+      const s=document.createElement('script');s.textContent=entry.text;document.body.appendChild(s);
+    }
+
+    const h1=document.querySelector('h1');
+    if(h1)h1.textContent="🌿 Kaiser's Plant Collection";
+
+    status('Connecting cloud');
+    await loadScript('plantdex-runtime-guard.js?v=live-1');
+    await loadScript('plantdex-cloud-v2.js?v=live-1');
+    await loadScript('plantdex-pedigree.js?v=live-1');
+    await loadScript('plantdex-reconcile.js?v=live-1');
+  }catch(err){
+    console.error('PlantDex startup failed',err);
+    document.body.innerHTML='<div class="loading"><div class="leaf">🌿</div><strong>PlantDex could not start</strong><div class="err"></div></div>';
+    document.querySelector('.err').textContent=err&&err.message?err.message:String(err);
+  }
+})();
+</script>
+</body>
+</html>
