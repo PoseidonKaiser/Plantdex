@@ -4,22 +4,23 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PlantDex Desktop</title>
 <style>
-html,body{margin:0;width:100%;height:100%;background:#0b120e;color:#e8f2eb;font-family:system-ui,-apple-system,sans-serif}#status{position:fixed;inset:0;display:grid;place-items:center;background:#0b120e;z-index:20}.card{background:#141d17;border:1px solid #2b3a31;border-radius:18px;padding:28px 32px}iframe{border:0;width:100%;height:100%;display:none}
+html,body{margin:0;width:100%;height:100%;background:#0b120e;color:#e8f2eb;font-family:system-ui,-apple-system,sans-serif}body{display:grid;place-items:center}.card{background:#141d17;border:1px solid #2b3a31;border-radius:18px;padding:28px 32px;box-shadow:0 16px 38px rgba(0,0,0,.34)}#msg{margin-top:8px;color:#a9b9af}
 </style>
 </head>
 <body>
-<div id="status"><div class="card"><strong>🌿 Refreshing PlantDex desktop…</strong><div id="msg" style="margin-top:8px;color:#a9b9af">Loading the complete cloud library.</div></div></div>
-<iframe id="app" title="PlantDex"></iframe>
+<div class="card"><strong>🌿 Refreshing PlantDex desktop…</strong><div id="msg">Loading the complete cloud library.</div></div>
 <script>
 (async()=>{
 const SB_URL='https://twemhhiyywhogaxvlnwz.supabase.co';
 const SB_KEY='sb_publishable_gQz5LPJE-4XZHaGvUNbggA_7EkMRVOn';
 const LOCAL_KEY='plantCollectionTracker_profiles_v8';
-const msg=document.getElementById('msg'), frame=document.getElementById('app');
+const FORCE_KEY='plantdex_desktop_force_v1';
+const msg=document.getElementById('msg');
 function getToken(){
   for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i)||''; if(!k.includes('auth-token')) continue;
-    try{const p=JSON.parse(localStorage.getItem(k)||'null'); const t=p?.access_token||p?.currentSession?.access_token||p?.session?.access_token; if(t)return t;}catch(e){}
+    const k=localStorage.key(i)||'';
+    if(!k.includes('auth-token'))continue;
+    try{const p=JSON.parse(localStorage.getItem(k)||'null');const t=p?.access_token||p?.currentSession?.access_token||p?.session?.access_token;if(t)return t;}catch(e){}
   }
   return '';
 }
@@ -29,7 +30,7 @@ async function sign(t,path){
   const enc=String(path).split('/').map(encodeURIComponent).join('/');
   const r=await fetch(SB_URL+'/storage/v1/object/sign/plantdex-photos/'+enc,{method:'POST',headers:hdr(t,{'Content-Type':'application/json'}),body:JSON.stringify({expiresIn:604800}),cache:'no-store'});
   if(!r.ok)return '';
-  const d=await r.json(), s=d.signedURL||d.signedUrl||'';
+  const d=await r.json(),s=d.signedURL||d.signedUrl||'';
   return s?(s.startsWith('http')?s:SB_URL+'/storage/v1'+s)+(s.includes('?')?'&':'?')+'pd='+Date.now():'';
 }
 async function hydrate(t,node,paths){
@@ -38,35 +39,33 @@ async function hydrate(t,node,paths){
   if(node&&typeof node==='object'){const out={};for(const [k,v] of Object.entries(node))out[k]=await hydrate(t,v,paths&&typeof paths==='object'?paths[k]:null);return out;}
   return node;
 }
-const token=getToken();
-if(!token){location.replace('./?desktop2=signin');return;}
-const r=await fetch(SB_URL+'/rest/v1/plantdex_plants?select=local_id,data,photo_path&order=created_at.asc',{headers:hdr(token),cache:'no-store'});
-if(!r.ok){msg.textContent='Cloud refresh failed ('+r.status+').';return;}
-const rows=await r.json();
-const cloud=[];
-for(let i=0;i<rows.length;i++){
-  const row=rows[i], p=Object.assign({},row.data||{},{id:String(row.local_id)});
-  p.photoPath=row.photo_path||p.photoPath||'';
-  p.photo=p.photoPath?await sign(token,p.photoPath):'';
-  p.gallery=await hydrate(token,Array.isArray(p.gallery)?p.gallery:[],p.galleryCloudPaths||[]);
-  cloud.push(p); msg.textContent='Loading '+(i+1)+' of '+rows.length+' plants…';
-}
-localStorage.setItem(LOCAL_KEY,JSON.stringify(cloud));
-frame.src='./?desktop2=1&v=20260828-countfix2';
-frame.onload=()=>{
-  let tries=0;
-  const force=()=>{
-    tries++;
-    try{
-      const payload=JSON.stringify(cloud).replace(/</g,'\\u003c');
-      frame.contentWindow.eval(`(()=>{try{const latest=${payload};if(typeof plants!==\"undefined\"&&typeof render===\"function\"){plants.splice(0,plants.length,...latest);localStorage.setItem('${LOCAL_KEY}',JSON.stringify(plants));render();const s=document.getElementById('cloudStatus');if(s)s.textContent='☁️ Synced • '+plants.length+' plants';}}catch(e){console.warn(e)}})()`);
-      const count=frame.contentWindow.eval('typeof plants!=="undefined"?plants.length:0');
-      if(count===cloud.length){document.getElementById('status').style.display='none';frame.style.display='block';return;}
-    }catch(e){}
-    if(tries<12)setTimeout(force,500);else{document.getElementById('status').style.display='none';frame.style.display='block';}
-  };
-  setTimeout(force,500);
-};
+try{
+  const token=getToken();
+  if(!token){location.replace('./?desktop2=signin');return;}
+  const r=await fetch(SB_URL+'/rest/v1/plantdex_plants?select=local_id,data,photo_path&order=created_at.asc',{headers:hdr(token),cache:'no-store'});
+  if(!r.ok)throw new Error('Cloud refresh failed ('+r.status+')');
+  const rows=await r.json();
+  const cloud=[];
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i],p=Object.assign({},row.data||{},{id:String(row.local_id)});
+    p.photoPath=row.photo_path||p.photoPath||'';
+    p.photo=p.photoPath?await sign(token,p.photoPath):'';
+    p.gallery=await hydrate(token,Array.isArray(p.gallery)?p.gallery:[],p.galleryCloudPaths||[]);
+    cloud.push(p);msg.textContent='Loading '+(i+1)+' of '+rows.length+' plants…';
+  }
+  localStorage.setItem(LOCAL_KEY,JSON.stringify(cloud));
+  sessionStorage.setItem(FORCE_KEY,JSON.stringify(cloud));
+  msg.textContent='Loaded '+cloud.length+' plants. Starting PlantDex…';
+
+  const ir=await fetch('./index.html?v=20260828-safariboot',{cache:'no-store'});
+  if(!ir.ok)throw new Error('Could not load PlantDex app shell.');
+  let loader=await ir.text();
+  const needle="html=html.replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8');";
+  const patch=needle+"\n    html=html.replace('let plants = loadPlants();', 'let plants = (()=>{try{const forced=JSON.parse(sessionStorage.getItem(\\\""+FORCE_KEY+"\\\")||\\\"[]\\\");return forced.length?forced:loadPlants();}catch(e){return loadPlants();}})();');";
+  if(!loader.includes(needle))throw new Error('PlantDex startup marker was not found.');
+  loader=loader.replace(needle,patch);
+  document.open();document.write(loader);document.close();
+}catch(e){console.error(e);msg.textContent=e.message||String(e);}
 })();
 </script>
 </body>
