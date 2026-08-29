@@ -1,14 +1,19 @@
 (function(){
+  const scripts=[
+    'plantdex-runtime-guard.js?v=20260828-unified1',
+    'plantdex-cloud-v2.js?v=20260828-mobile-savefix1',
+    'plantdex-pedigree.js?v=20260828-pedigree1'
+  ];
   if(document.readyState==='loading'){
-    document.write('<scr'+'ipt src="plantdex-cloud-v2.js?v=20260828-mobile-savefix1"></scr'+'ipt><scr'+'ipt src="plantdex-pedigree.js?v=20260828-pedigree1"></scr'+'ipt>');
+    document.write(scripts.map(src=>'<scr'+'ipt src="'+src+'"></scr'+'ipt>').join(''));
   }else{
-    const cloud=document.createElement('script');
-    cloud.src='plantdex-cloud-v2.js?v=20260828-mobile-savefix1';
-    cloud.onload=()=>{
-      const pedigree=document.createElement('script');
-      pedigree.src='plantdex-pedigree.js?v=20260828-pedigree1';
-      document.head.appendChild(pedigree);
+    const load=i=>{
+      if(i>=scripts.length)return;
+      const s=document.createElement('script');
+      s.src=scripts[i];
+      s.onload=()=>load(i+1);
+      document.head.appendChild(s);
     };
-    document.head.appendChild(cloud);
+    load(0);
   }
 })();
