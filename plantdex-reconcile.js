@@ -6,6 +6,31 @@ const AUTH_KEY='sb-twemhhiyywhogaxvlnwz-auth-token';
 let busy=false,lastRun=0,focusTimer=null;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function editorOpen(){return !!document.querySelector('dialog[open]');}
+function reorderCollectionColumns(){
+  const table=document.querySelector('.table-wrap table');
+  if(!table)return;
+  const order=[1,0,6,2,3,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19];
+  table.querySelectorAll('tr').forEach(row=>{
+    const cells=[...row.children];
+    if(cells.length!==20)return;
+    const first=(cells[0].textContent||'').trim();
+    const second=(cells[1].textContent||'').trim();
+    if(first==='★' || (first==='☆' && second!=='★'))return;
+    order.forEach(i=>row.appendChild(cells[i]));
+  });
+}
+function installColumnOrder(){
+  if(window.__plantdexColumnOrderInstalled)return;
+  const baseRender=window.render;
+  if(typeof baseRender!=='function')return;
+  window.render=function(){
+    const out=baseRender.apply(this,arguments);
+    reorderCollectionColumns();
+    return out;
+  };
+  window.__plantdexColumnOrderInstalled=true;
+  reorderCollectionColumns();
+}
 function hidePriceColumn(){
   if(document.getElementById('plantdexHidePrice'))return;
   const style=document.createElement('style');
@@ -181,6 +206,7 @@ function refreshOpenProfile(){
 async function reconcile(force=false){
   hidePriceColumn();
   applyDarkTheme();
+  installColumnOrder();
   makeNfcCollapsible();
   if(editorOpen()||busy||(!force&&Date.now()-lastRun<800))return;
   if(typeof plants==='undefined'||typeof render!=='function')return;
@@ -204,8 +230,9 @@ async function reconcile(force=false){
     render();
     hidePriceColumn();
     applyDarkTheme();
+    reorderCollectionColumns();
     refreshOpenProfile();
-    requestAnimationFrame(()=>{render();hidePriceColumn();applyDarkTheme();refreshOpenProfile();makeNfcCollapsible();});
+    requestAnimationFrame(()=>{render();hidePriceColumn();applyDarkTheme();reorderCollectionColumns();refreshOpenProfile();makeNfcCollapsible();});
     lastRun=Date.now();
     const status=document.getElementById('cloudStatus');
     if(status)status.textContent='☁️ Synced';
@@ -219,6 +246,7 @@ function scheduleForceReconcile(delay=150){
 async function start(){
   hidePriceColumn();
   applyDarkTheme();
+  installColumnOrder();
   const observer=new MutationObserver(()=>makeNfcCollapsible());
   observer.observe(document.body,{childList:true,subtree:true});
   for(let i=0;i<100&&!getAccessToken();i++)await sleep(100);
