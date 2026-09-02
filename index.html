@@ -78,7 +78,7 @@ body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;
       html=html.replace('<section class="stats">',toolbar+'\n    <section class="stats">');
     }
 
-    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=fullsync-0818-racefix-3"></scr'+'ipt><scr'+'ipt src="plantdex-reconcile.js?v=0820-darkfix-1"></scr'+'ipt>';
+    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=fullsync-0818-racefix-3"></scr'+'ipt><scr'+'ipt src="plantdex-reconcile.js?v=column-safe-f8f126e8"></scr'+'ipt>';
     html=html.replace('</body>',cloudTag+'\n</body>');
     document.open();document.write(html);document.close();
   }catch(err){
