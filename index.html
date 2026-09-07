@@ -48,7 +48,7 @@ body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;
     html=html.replace(importedMatch[1],JSON.stringify(seedPlants));
     html=html.replace(/plantCollectionTracker_profiles_v7/g,'plantCollectionTracker_profiles_v8');
     html=html.replace('.plant-name{font-weight:800}', '.plant-name{font-weight:800}\n    .photo-link{border:0;background:transparent;padding:0;cursor:pointer;border-radius:12px}\n    .cloudbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;background:#eef6ef;border:1px solid var(--line);border-radius:14px}.cloudbar input{max-width:240px}.cloudstatus{font-size:.85rem;color:var(--muted);font-weight:700}.cloud-forgot{background:transparent;border:0;color:var(--green);padding:7px 8px;font-size:.85rem}');
-    html=html.replace('<td>${p.photo ? `<img class="plant-photo" src="${p.photo}" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</td>', '<td><button class="photo-link" type="button" onclick="viewProfile(\'${p.id}\')" title="Open profile">${p.photo ? `<img class="plant-photo" src="${p.photo}" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</button></td>');
+    html=html.replace('<td>${p.photo ? `<img class="plant-photo" src="${p.photo}" loading="lazy" decoding="async" fetchpriority="low" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</td>', '<td><button class="photo-link" type="button" onclick="viewProfile(\'${p.id}\')" title="Open profile">${p.photo ? `<img class="plant-photo" src="${p.photo}" loading="lazy" decoding="async" fetchpriority="low" alt="${esc(p.nickname || p.type || \'Plant\')}">` : `<div class="photo-placeholder">🌱</div>`}</button></td>');
     html=html.replace('<label><span>Last Fertilized</span><input id="lastFertilized" type="date"></label>', '<label><span>Last Fertilized</span><input id="lastFertilized" type="date"></label>\n        <label><span>Number of Leaves</span><input id="numberLeaves" type="number" min="0" placeholder="e.g. 4"></label>\n        <label><span>Leaf 👀</span><input id="leafEye" type="checkbox" style="width:auto;transform:scale(1.25)"></label>');
     html=html.replace('document.getElementById("lastFertilized").value = plant?.lastFertilized || "";', 'document.getElementById("lastFertilized").value = plant?.lastFertilized || "";\n  document.getElementById("numberLeaves").value = plant?.numberLeaves ?? "";\n  document.getElementById("leafEye").checked = !!plant?.leafEye;');
     html=html.replace('const item = {\n    id, photo,', 'const item = {\n    ...(i >= 0 ? plants[i] : {}),\n    id, photo,');
@@ -78,7 +78,7 @@ body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;
       html=html.replace('<section class="stats">',toolbar+'\n    <section class="stats">');
     }
 
-    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=fullsync-0818-racefix-3"></scr'+'ipt><scr'+'ipt src="plantdex-reconcile.js?v=egressfix-f111bae2"></scr'+'ipt>';
+    const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=egressfix-20260907"></scr'+'ipt><scr'+'ipt src="plantdex-reconcile.js?v=egressfix-20260907"></scr'+'ipt>';
     html=html.replace('</body>',cloudTag+'\n</body>');
     document.open();document.write(html);document.close();
   }catch(err){
