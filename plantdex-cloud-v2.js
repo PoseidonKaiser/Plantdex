@@ -3,6 +3,10 @@ const SB_URL='https://twemhhiyywhogaxvlnwz.supabase.co';
 const SB_KEY='sb_publishable_gQz5LPJE-4XZHaGvUNbggA_7EkMRVOn';
 const LOCAL_KEY='plantCollectionTracker_profiles_v8';
 let sb=null,cloudUser=null,ready=false,syncing=false,syncTimer=null,recoveryMode=false;
+const PHOTO_CACHE_KEY='plantdex_signed_photo_cache_v2';
+const PHOTO_URL_TTL=6*24*60*60*1000;
+function readPhotoCache(){try{return JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY)||'{}')||{};}catch(e){return {};}}
+function writePhotoCache(cache){try{localStorage.setItem(PHOTO_CACHE_KEY,JSON.stringify(cache));}catch(e){}}
 const originalSavePlants=window.savePlants||function(){localStorage.setItem(LOCAL_KEY,JSON.stringify(plants));};
 window.plantdexDirty=false;
 
@@ -15,7 +19,19 @@ function authUi(signedIn){
 function loadSdk(){return new Promise((resolve,reject)=>{if(window.supabase)return resolve();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.1/dist/umd/supabase.min.js';s.onload=resolve;s.onerror=()=>reject(new Error('Supabase library could not load'));document.head.appendChild(s);});}
 function safe(v){return String(v??'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,80)||'item';}
 function dataUrlToBlob(dataUrl){const [meta,b64]=dataUrl.split(',');const mime=(meta.match(/data:(.*?);/)||[])[1]||'image/jpeg';const bytes=atob(b64);const a=new Uint8Array(bytes.length);for(let i=0;i<bytes.length;i++)a[i]=bytes.charCodeAt(i);return new Blob([a],{type:mime});}
-async function signed(path){if(!path)return '';const {data,error}=await sb.storage.from('plantdex-photos').createSignedUrl(path,604800);return error?'':data.signedUrl;}
+async function signed(path){
+  if(!path)return '';
+  const key=String(path),now=Date.now(),cache=readPhotoCache(),hit=cache[key];
+  if(hit&&hit.url&&hit.expiresAt>now)return hit.url;
+  const {data,error}=await sb.storage.from('plantdex-photos').createSignedUrl(path,604800);
+  if(error)return hit?.url||'';
+  const url=data?.signedUrl||data?.signedURL||'';
+  if(!url)return hit?.url||'';
+  cache[key]={url,expiresAt:now+PHOTO_URL_TTL};
+  for(const [k,v] of Object.entries(cache)){if(!v||!v.url||v.expiresAt<now-86400000)delete cache[k];}
+  writePhotoCache(cache);
+  return url;
+}
 async function uploadDataUrl(dataUrl,stem){const blob=dataUrlToBlob(dataUrl);const ext=(blob.type.split('/')[1]||'jpg').replace('jpeg','jpg');const path=stem+'.'+ext;const {error}=await sb.storage.from('plantdex-photos').upload(path,blob,{upsert:true,contentType:blob.type});if(error)throw error;return path;}
 async function prepareGalleryNode(node,oldPaths,stem){
   if(typeof node==='string'){
@@ -33,7 +49,7 @@ async function hydrateNode(node,paths){
   if(node&&typeof node==='object'){const out={};for(const [k,v] of Object.entries(node))out[k]=await hydrateNode(v,paths&&typeof paths==='object'?paths[k]:null);return out;}
   return node;
 }
-async function hydrateRow(row){const p=Object.assign({},row.data||{},{id:String(row.local_id)});p.photoPath=row.photo_path||p.photoPath||'';p.photo=p.photoPath?await signed(p.photoPath):'';p.gallery=await hydrateNode(Array.isArray(p.gallery)?p.gallery:[],p.galleryCloudPaths||[]);return p;}
+async function hydrateRow(row){const p=Object.assign({},row.data||{},{id:String(row.local_id)});p.photoPath=row.photo_path||p.photoPath||'';p.photo=p.photoPath?await signed(p.photoPath):'';p.gallery=Array.isArray(p.gallery)?p.gallery:[];return p;}
 async function fetchAllRows(){
   const all=[];const pageSize=50;
   for(let from=0;;from+=pageSize){
@@ -64,7 +80,9 @@ async function syncNow(){
       const g=await prepareGalleryNode(Array.isArray(p.gallery)?p.gallery:[],p.galleryCloudPaths||[],cloudUser.id+'/'+safe(p.id)+'/timeline');
       const clean=Object.assign({},p,{photo:'',photoPath:photoPath||'',gallery:g.clean,galleryCloudPaths:g.paths});delete clean.removePhotoCloud;
       const {error}=await sb.from('plantdex_plants').upsert({user_id:cloudUser.id,local_id:String(p.id),data:clean,photo_path:photoPath||null},{onConflict:'user_id,local_id'});if(error)throw error;
-      p.photoPath=photoPath||'';p.galleryCloudPaths=g.paths;p.gallery=await hydrateNode(g.clean,g.paths);
+      p.photoPath=photoPath||'';p.galleryCloudPaths=g.paths;
+      // Keep timeline photos lazy: do not generate fresh signed URLs for every gallery image on every save.
+      p.gallery=g.clean;
     }
     originalSavePlants();window.plantdexDirty=false;if(typeof render==='function')render();status('☁️ Synced • '+plants.length+' plants');
   }catch(e){console.error('PlantDex sync failed',e);window.plantdexDirty=true;status('⚠️ Save failed — change kept on this device');}
