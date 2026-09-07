@@ -4,7 +4,13 @@ const SB_KEY='sb_publishable_gQz5LPJE-4XZHaGvUNbggA_7EkMRVOn';
 const LOCAL_KEY='plantCollectionTracker_profiles_v8';
 const AUTH_KEY='sb-twemhhiyywhogaxvlnwz-auth-token';
 let busy=false,lastRun=0,focusTimer=null;
+const RECONCILE_INTERVAL=15*60*1000;
+const PHOTO_URL_TTL=6*24*60*60*1000;
+const PHOTO_CACHE_KEY='plantdex_signed_photo_cache_v1';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function readPhotoCache(){try{return JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY)||'{}')||{};}catch(e){return {};}}
+function writePhotoCache(cache){try{localStorage.setItem(PHOTO_CACHE_KEY,JSON.stringify(cache));}catch(e){}}
+function optimizeTableImages(){document.querySelectorAll('.table-wrap img.plant-photo').forEach(img=>{img.loading='lazy';img.decoding='async';});}
 function editorOpen(){return !!document.querySelector('dialog[open]');}
 function reorderCollectionColumns(){
   const table=document.querySelector('.table-wrap table');
@@ -171,15 +177,23 @@ async function fetchCloudRows(token){
 }
 async function signedPhoto(token,path){
   if(!path)return '';
-  const encoded=String(path).split('/').map(encodeURIComponent).join('/');
+  const key=String(path);
+  const now=Date.now();
+  const cache=readPhotoCache();
+  const hit=cache[key];
+  if(hit&&hit.url&&hit.expiresAt>now)return hit.url;
+  const encoded=key.split('/').map(encodeURIComponent).join('/');
   const url=SB_URL+'/storage/v1/object/sign/plantdex-photos/'+encoded;
-  const r=await fetch(url,{method:'POST',headers:authHeaders(token,{'Content-Type':'application/json'}),body:JSON.stringify({expiresIn:604800}),cache:'no-store'});
-  if(!r.ok){console.warn('Plantdex photo URL failed',path,r.status);return '';}
+  const r=await fetch(url,{method:'POST',headers:authHeaders(token,{'Content-Type':'application/json'}),body:JSON.stringify({expiresIn:604800}),cache:'default'});
+  if(!r.ok){console.warn('Plantdex photo URL failed',path,r.status);return hit?.url||'';}
   const data=await r.json();
   const signed=data.signedURL||data.signedUrl||'';
-  if(!signed)return '';
+  if(!signed)return hit?.url||'';
   const full=signed.startsWith('http')?signed:SB_URL+'/storage/v1'+signed;
-  return full+(full.includes('?')?'&':'?')+'pd='+Date.now();
+  cache[key]={url:full,expiresAt:now+PHOTO_URL_TTL};
+  for(const [k,v] of Object.entries(cache)){if(!v||!v.url||v.expiresAt<now-86400000)delete cache[k];}
+  writePhotoCache(cache);
+  return full;
 }
 async function hydrateGalleryNode(token,node,paths){
   if(typeof paths==='string'&&paths)return await signedPhoto(token,paths);
@@ -208,7 +222,7 @@ async function reconcile(force=false){
   applyDarkTheme();
   installColumnOrder();
   makeNfcCollapsible();
-  if(editorOpen()||busy||(!force&&Date.now()-lastRun<800))return;
+  if(editorOpen()||busy||(!force&&Date.now()-lastRun<RECONCILE_INTERVAL))return;
   if(typeof plants==='undefined'||typeof render!=='function')return;
   const token=getAccessToken();
   if(!token)return;
@@ -222,7 +236,9 @@ async function reconcile(force=false){
       const p=Object.assign({},row.data||{},{id});
       p.photoPath=row.photo_path||p.photoPath||'';
       p.photo=p.photoPath?await signedPhoto(token,p.photoPath):'';
-      p.gallery=await hydrateGalleryNode(token,Array.isArray(p.gallery)?p.gallery:[],p.galleryCloudPaths||[]);
+      // Do not re-sign every timeline image during collection refresh. Gallery images are
+      // left intact and can be loaded when the profile is opened.
+      p.gallery=Array.isArray(p.gallery)?p.gallery:[];
       next.push(p);
     }
     plants.splice(0,plants.length,...next);
@@ -231,17 +247,18 @@ async function reconcile(force=false){
     hidePriceColumn();
     applyDarkTheme();
     reorderCollectionColumns();
+    optimizeTableImages();
     refreshOpenProfile();
-    requestAnimationFrame(()=>{render();hidePriceColumn();applyDarkTheme();reorderCollectionColumns();refreshOpenProfile();makeNfcCollapsible();});
+    requestAnimationFrame(()=>{hidePriceColumn();applyDarkTheme();reorderCollectionColumns();optimizeTableImages();makeNfcCollapsible();});
     lastRun=Date.now();
     const status=document.getElementById('cloudStatus');
     if(status)status.textContent='☁️ Synced';
   }catch(e){console.warn('Plantdex reconciliation skipped',e);}
   finally{busy=false;}
 }
-function scheduleForceReconcile(delay=150){
+function scheduleReconcile(delay=300){
   clearTimeout(focusTimer);
-  focusTimer=setTimeout(()=>{if(!editorOpen())reconcile(true);},delay);
+  focusTimer=setTimeout(()=>{if(!editorOpen())reconcile(false);},delay);
 }
 async function start(){
   hidePriceColumn();
@@ -253,13 +270,11 @@ async function start(){
   await sleep(250);
   await reconcile(true);
   makeNfcCollapsible();
-  const status=document.getElementById('cloudStatus');
-  if(status){
-    new MutationObserver(()=>{if(/Synced/.test(status.textContent||''))scheduleForceReconcile(150);}).observe(status,{childList:true,characterData:true,subtree:true});
-  }
-  window.addEventListener('focus',()=>scheduleForceReconcile(150));
-  window.addEventListener('pageshow',()=>scheduleForceReconcile(100));
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')scheduleForceReconcile(100);});
+  // Avoid a Synced -> reconcile -> Synced feedback loop. Background/focus refreshes
+  // are rate-limited; manual refresh remains available through plantdexReconcile().
+  window.addEventListener('focus',()=>scheduleReconcile(500));
+  window.addEventListener('pageshow',()=>scheduleReconcile(500));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')scheduleReconcile(500);});
 }
 window.plantdexReconcile=()=>reconcile(true);
 start();
