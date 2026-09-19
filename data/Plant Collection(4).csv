@@ -2,91 +2,82 @@
 Philodendron,,,,,,,,,,,,
 ,Philodendron,White Knight,0,White Knight,Lowes,6/6,20,1,,6 inch,,FALSE
 ,Philodendron,Ring of Fire,0,Ring of Fire,Walmart,7/30,20,2,,6 inch,,FALSE
-,Philodendron,Pink Princess,0,Princes Bubblegum,Lowes,7/30,15,2,,6 inch,,FALSE
-,Philodendron,Pink Princess,0,Twins,Lowes,7/30,15,2,,6 inch,,FALSE
-,Philodendron,Pink Princess,0,Twins,Lowes,7/30,Free,2,,6 inch,,FALSE
-,Philodendron,Birkin,0,Birkin,Lowes,7/30,10,2,,6 inch,,FALSE
-,Philodendron,Florida Ghost,0,Ghost,Home Depot,7/30,10,2,,6 inch,,FALSE
-,Philodendron,Golden Crocodile,0,Crocodile,Home Depot,7/30,10,2,,6 inch,,FALSE
-,Philodendron,Fat Boy,0,Fat Boy,Rainbow Gardens,8/7,47.99 (Gift),2.5,,,,FALSE
-,Philodendron,Pluto,0,Pluto,Rainbow Gardens,8/7,24.99 (Gift),2.5,,,,FALSE
-,Philodendron,Florida Beauty,0,Florida Beauty,Rainbow Gardens,8/7,34.99 (Gift),2.5,,,,FALSE
+,Philodendron,Pink Princess,0,Princes Bubblegum,Lowes,7/31,15,1,,6 inch,,FALSE
+,Philodendron,Pink Princess,0,Twins,Lowes,7/31,15,2,,6 inch,,FALSE
+,Philodendron,Pink Princess,0,Twins,Lowes,7/31,Free,2,,6 inch,,FALSE
+,Philodendron,Birkin,0,Birkin,Lowes,8/4,10,1,,6 inch,,FALSE
+,Philodendron,Florida Ghost,0,Ghost,Home Depot,8/5,10,1,,6 inch,,FALSE
+,Philodendron,Golden Crocodile,0,Crocodile,Home Depot,8/5,10,2,,6 inch,,FALSE
+,Philodendron,Fat Boy,0,Fat Boy,Rainbow Gardens,8/7,47.99 (Gift),2,,,,FALSE
+,Philodendron,Pluto,0,Pluto,Rainbow Gardens,8/7,24.99 (Gift),2,,,,FALSE
+,Philodendron,Florida Beauty,0,Florida Beauty,Rainbow Gardens,8/7,34.99 (Gift),1,,,,FALSE
 ,Philodendron,Red Emerald,0,Red Emerald,ED Hunnington,8/7,25,2.5,,,,FALSE
-,Philodendron,Orange Marmalade,0,Lady Marmalade,Cornelius,8/14,17,1,,,,FALSE
-,Philodendron,Tortum,0,Big,Plant Swap,8/29,15,2,,,,FALSE
-,Philodendron,Tortum,0,Small,Plant Swap,8/29,10,2,,,,FALSE
-,Philodendron,Ring of Fire,0,Varigated,Plant Swap,8/29,5,2,,,,FALSE
-,Philodendron,Hederaceum,0,Cream Splash,Plant Swap,8/29,5,2,,,,FALSE
-,Philodendron,Bipinnatifidum,0,,Plant Swap,8/29,Free,2,,,,FALSE
-,Philodendron,Gloriosum ,0,,Plant Swap,8/29,Free,2,,,,FALSE
-,Philodendron,Burle Marx,0,,Plant Swap,8/29,Free,2,,,,FALSE
+,Philodendron,Orange Marmalade,0,Lady Marmalade,Cornelius,8/10,17,2,,,,FALSE
+,Philodendron,Tortum,0,Big,Home Depot,7/26,5,2,,,,FALSE
+,Philodendron,Tortum,0,Small,Home Depot,7/26,5,2,,,,FALSE
+,Philodendron,Ring of Fire,0,Varigated,Walmart,8/25,Free,1.5,,,,FALSE
+,Philodendron,Hederaceum,0,Cream Splash,Plant Swap,8/29,Free,2.5,,,,FALSE
+,Philodendron,Bipinnatifidum,0,Atom,Rainbow Gardens,9/6,21.99,,,,,FALSE
+,Philodendron,Gloriosum ,0,Drama,Lowes,9/4,11.50,,,,,FALSE
+,Philodendron,Pink Princess,0,PPP,HEB,9/18,25,,,,,FALSE
 Monstera,,,,,,,,,,,,
-,Monstera,Deliciosa,0,GrandMon,Abuelita Via Mom,4/25,Free,1,,12 inch,,FALSE
-,Monstera,Deliciosa,0,Bucket 1,Lowes,7/30,15,1,,10 inch,,FALSE
-,Monstera,Deliciosa,0,Bucket 2,Lowes,7/30,30,1,,10 inch,,FALSE
-,Monstera,Thai Con,0,Glow Rock,Lowes,7/30,15,1,,12 inch,,FALSE
-,Monstera,Burle Marx Flame,0,Flames,Home Depot,7/30,44,1,,7 inch ,,FALSE
-,Monstera,Thai Con,0,Black Moss Pole,Plant Con,7/30,30,1,,6 inch,,FALSE
-,Monstera,Albo,0,Glow Moss Pole,Plant Con,7/30,45,1,,8 inch,,FALSE
-,Monstera,White Monster,0,,Home Depot,8/6,30,2,,4.5 inch,,FALSE
-,Monstera,White Monster,0,,Home Depot,8/6,15,2,,4.5 inch,,FALSE
-,Monstera,Mysteria Transylvania,0,Rescue,Home Depot,8/6,15,2,,4.5 inch,,FALSE
-,Monstera,Mysteria Transylvania,0,Floor,Home Depot,8/6,Free,2,,4.5 inch,,FALSE
-,Monstera,Bulbasaur,0,BruteRoot,Rainbow Gardens,8/8,90,2,,TBD,4,TRUE
-,Monstera,Adansonii Swiss,0,Swiss Chesse,Jared,8/7,Free,2,Cutting,Water,,FALSE
-,Monstera,Esqueleto,0,Esqueleto,ED Hunnington,8/7,50,2,Cutting,,,FALSE
-,Monstera,Esquelito,0,Esquelito,Rainbow Gardens,8/7,17,2,,,,TRUE
-,Monstera,Pinnatipartita,0,Partita,ED Hunnington,8/7,Free,2,Cutting,,,FALSE
-,Monstera,Burle Marx Flame,0,Lil 🔥,Lowes,8/11,10,2,,,,FALSE
-,Monstera,Thai Con,0,Costa,Lowes,8/11,15,2,,,,FALSE
-,Monstera,Mint,0,Mintirosa,Home Depot,8/29,15,2.5,,,,FALSE
-,Monstera,Adansonii Swiss,0,Rescue,Lowes,8/29,10,2.5,,,,FALSE
-,Monstera,Standleyana,0,Cobra,Lowes,9/1,15,3,Onboarding,,,FALSE
+,Monstera,Deliciosa,0,GrandMon,Abuelita Via Mom,11/8/25,Free,1,,12 inch,,FALSE
+,Monstera,Deliciosa,0,Bucket 1,Lowes,8/21,15,2.5,,10 inch,,FALSE
+,Monstera,Deliciosa,0,Bucket 2,Lowes,8/21,25,Wildzone,,10 inch,,FALSE
+,Monstera,Thai Con,0,Big Thai,Lowes,6/6,23.80,1.5,,12 inch,,FALSE
+,Monstera,Burle Marx Flame,0,Flames,Home Depot,7/28,44,1.5,,7 inch ,,FALSE
+,Monstera,Thai Con,0,Black Moss Pole,Plant Con,4/25,30,1,,6 inch,,FALSE
+,Monstera,Albo,0,Glow Moss Pole,Plant Con,4/25,45,1,,8 inch,,FALSE
+,Monstera,White Monster,0,,Home Depot,7/28,30,1,,4.5 inch,,FALSE
+,Monstera,White Monster,0,,Home Depot,7/28,15,1,,4.5 inch,,FALSE
+,Monstera,Mysteria Transylvania,0,Rescue,Home Depot,7/28,15,1,,4.5 inch,,FALSE
+,Monstera,Mysteria Transylvania,0,Floor,Home Depot,7/28,Free,1,,4.5 inch,,FALSE
+,Monstera,Bulbasaur,0,BruteRoot,Rainbow Gardens,8/8,90,1,,TBD,4,TRUE
+,Monstera,Adansonii Swiss,0,Swiss Chesse,Jared,,Free,2.5,,Water,Cutting,FALSE
+,Monstera,Esqueleto,0,Esqueleto,ED Hunnington,8/7,50,1,,,Cutting,FALSE
+,Monstera,Esquelito,0,Esquelito,Rainbow Gardens,8/7,17,1,,,\,TRUE
+,Monstera,Pinnatipartita,0,Partita,ED Hunnington,8/7,Free,2.5,,,Cutting,FALSE
+,Monstera,Burle Marx Flame,0,Lil 🔥,Lowes,8/13,10,1.5,,,,FALSE
+,Monstera,Thai Con,0,Costa,Lowes,8/13,15,1.5,,,,FALSE
+,Monstera,Mint,0,Mintirosa,Home Depot,8/18,25,1,,,,FALSE
+,Monstera,Adansonii Swiss,0,Rescue,Lowes,8/25,7,1,,,,FALSE
+,Monstera,Standleyana,0,Cobra,Lowes,9/1,20,3,,,,FALSE
+,Monstera,Golden Compacta,0,Golden Sedum,Home Depot,9/16,10.81,,,,,FALSE
 Hoya,,,,,,,,,,,,
-,Hoya,Hindu Rope,0,Main,Plant Con,7/30,30,2,,6 inch,,FALSE
-,Hoya,Hindu Rope,0,Prop,Plant Con,7/30,Free,2,,6 inch,,FALSE
-,Hoya,Hindu Rope,0,Bowl,Rainbow Gardens,7/30,25,2,,6 inch,,FALSE
-,Hoya,Shining Sea Star,0,Shining Sea Star,Home Depot,7/30,20,2,,5 inch,,FALSE
-,Hoya,Carnosa,0,Krimson Queen,Lowes,7/30,20,2,,8 inch,,FALSE
-,Hoya,Hindu Rope (Varigated),0,White Rope,Rainbow Gardens,8/14,8,2,,,,FALSE
-,Hoya,Hindu Rope,0,Lady Hair,Cornelius,8/14,15,2,,,,FALSE
-,Hoya,Sea Stone,0,Sea Stones,Lowes,9/1,15,3,Onboarding,,,FALSE
-,Hoya,Latifolia Albomarginata,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Wilbur Graves,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Waymaniae,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Kerrii Splash,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Pubicalyx Splash,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Finlaysonii,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Krohniana Splash,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Australis Lisa,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Wayetii,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Obovata Splash,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Rotundiflora,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Compacta Mauna Loa,0,,Plant Swap,9/6,Free,3,,,,FALSE
-,Hoya,Wibergiae,0,,Plant Swap,9/6,Free,3,,,,FALSE
+,Hoya,Hindu Rope,0,Main,Plant Con,5/31/25,30,1,,6 inch,,FALSE
+,Hoya,Hindu Rope,0,Prop,Plant Con,5/31/25,Free,1,,6 inch,,FALSE
+,Hoya,Hindu Rope,0,Bowl,Rainbow Gardens,5/16,25,1,,6 inch,,FALSE
+,Hoya,Shining Sea Star,0,Shining Sea Star,Home Depot,7/29,20,1,,5 inch,,FALSE
+,Hoya,Carnosa,0,Krimson Queen,Lowes,8/21,20,1.5,,8 inch,,FALSE
+,Hoya,Hindu Rope (Varigated),0,White Rope,Rainbow Gardens,8/7,8,1,,,,FALSE
+,Hoya,Hindu Rope,0,Lady Hair,Cornelius,8/10,15,1,,,,FALSE
+,Hoya,Sea Stone,0,Sea Stones,Home Depot,9/1,8,3,,,,FALSE
+,Hoya,Lacunosa ,0,Lacunosa ,Lowes,9/11,10,,,,,FALSE
+,Hoya,Hoya wayetii ‘Variegata’,0,Wayetti,Lowes,9/11,7,,,,,FALSE
 Suculents,,,,,,,,,,,,
-,Suculents,Cotyledon Tomentosa,0,Bear Paw,Home Depot,8/20,5,0,,3.5 inch,,FALSE
-,Suculents,Prickly Pear,0,Nopal,Mom,8/13,Free,0,,-,,FALSE
-,Suculents,Sedum Adolphi,0,Golden Sedum,Plant Swap,8/29,Free,0,,,,FALSE
-,Suculents,Aeonium ‘Burgundy’,0,Burgundy/Green,Plant Swap,8/29,Free,0,,,,FALSE
-,Suculents,Graptopetalum paragauense,0,Ghost` Plant,Plant Swap,8/29,Free,0,,,,FALSE
-,Suculents,Sempervivum,0,Red Star,Plant Swap,8/29,Free,0,,,,FALSE
-,Suculents,Aeonium ‘Green Form’,0,Green Form,Plant Swap,8/29,Free,0,,,,FALSE
-,Suculents,Aeonium ‘Zwartkop’,0,Black Rose,Plant Swap,8/29,Free,0,,,,FALSE
-,Suculents,Aeonium ‘Zwartkop’,0,Black Rose,Plant Swap,8/29,Free,0,,,,FALSE
-,Suculents,Sedum Adolphi,0,Golden Sedum,Plant Swap,8/29,Free,0,,,,FALSE
-,Suculents,Aeonium ‘Green Form’,0,Green Form,Plant Swap,8/29,Free,0,,,,FALSE
+,Suculents,Cotyledon Tomentosa,0,Bear Paw,Home Depot,7/26,5,2,,3.5 inch,,FALSE
+,Suculents,Prickly Pear,0,Nopal,Mom,5/10,Free,0,,-,,FALSE
+,Suculents,Sedum Adolphi,0,Golden Sedum,Oakland,8/23,Free,2,Cup 1,,,FALSE
+,Suculents,Aeonium ‘Burgundy’,0,Burgundy/Green,Oakland,8/23,Free,2,Cup 1,,,FALSE
+,Suculents,Graptopetalum paragauense,0,Ghost` Plant,Oakland,8/23,Free,2,Cup 1,,,FALSE
+,Suculents,Sempervivum,0,Red Star,Oakland,8/23,Free,2,Cup 2,,,FALSE
+,Suculents,Aeonium ‘Green Form’,0,Green Form,Oakland,8/23,Free,2,Cup 2,,,FALSE
+,Suculents,Aeonium ‘Zwartkop’,0,Black Rose,Oakland,8/23,Free,2,Cup 2,,,FALSE
+,Suculents,Aeonium ‘Zwartkop’,0,Black Rose,Oakland,8/23,Free,2,Cup 3,,,FALSE
+,Suculents,Sedum Adolphi,0,Golden Sedum,Oakland,8/23,Free,2,Cup 3,,,FALSE
+,Suculents,Aeonium ‘Green Form’,0,Green Form,Oakland,8/23,Free,2,Cup 3,,,FALSE
 ,Suculents,Opuntia monacata,0,Varigated Nopal,Plant Swap,8/29,8,0,,,,FALSE
 Pothos,,,,,,,,,,,,
 ,Pothos,Marble Queen,0,Theo,Lowes,7/10,20,1,,6 inch,,FALSE
 ,Pothos,Marble Queen,0,Dora,Lowes,7/10,20,1,,6 inch,,FALSE
-,Pothos,Brazil,0,Brazil,Lowes,7/10,10,1,,Tripod,,FALSE
-,Pothos,Manjula,0,Manjuju,Lowes,7/10,10,1,,Tripod,,FALSE
+,Pothos,Brazil ,0,Brazil,Lowes,7/10,10,1,,Tripot,,FALSE
+,Pothos,Manjula ,0,Manjuju,Lowes,7/10,10,1,,Tripot,,FALSE
 ,Pothos,Golden,0,Goldie 1,Lowes,8/13,7,1,,,,FALSE
 ,Pothos,Golden,0,Goldie 2,Lowes,8/13,7,Returned,,,,FALSE
 ,Pothos,Sunburst,0,Sunburst,Lowes,8/13,10,1,,,,FALSE
 ,Pothos,Neon,0,Neon,Lowes,9/1,8,3,,,,FALSE
-,Pothos,Shangri-La,0,,Lowes,9/4,15,3,,,,FALSE
+,Pothos,???,0,NIchas,Nichas,9/5,Free,,Proplift,,,FALSE
+,Pothos,,0,Albo,Lowes,9/12,10,,,,,FALSE
 Ferns,,,,,,,,,,,,
 ,Ferns,Blue Oil Fern,0,Blueil,Rainbow Gardens,5/16,26,TBD,,6 inch,,FALSE
 Fruiting,,,,,,,,,,,,
@@ -102,15 +93,23 @@ Misc,,,,,,,,,,,,
 ,Misc,English Ivy,0,Pappas,Pappasitos,8/18,Free,2,Cutting,-,,FALSE
 ,Misc,ZZ Chameleon,0,Chameleon,Lowes,9/1,10,3,Onboarding,,,FALSE
 ,Misc,Epipremnum Cebu Blue Aurea,0,Blue Aurea,Plant Swap,8/29,Free,2.5,Onboarding,,,FALSE
+,Misc,Epipremnum aureum,0,Shangri La,Lowes,9/4,8.50,,,,,FALSE
+,Misc,Selaginella uncinata,0,Peacock Moss,Cornelius,9/14,9.99,Terrarium,,,,FALSE
 Syngonium,,,,,,,,,,,,
 ,Syngonium,Angustatum,0,Five Finger,ED Hunnington,8/7,25,2.5,Cutting,-,,FALSE
+,Syngonium,Podophyllum,0,Arrowhead,Lowes,9/11,Free,,,,,FALSE
 Alocasia,,,,,,,,,,,,
 ,Alocasia,Infernalis “Kapit”,0,Infernalis,Rainbow Gardens,8/7,25,2.5,Table,,,FALSE
-,Alocasia,Zebrina,0,Tina,Rainbow Gardens,8/7,26.99 (Gift - Mom),Front,Quarantine,,,FALSE
-,Alocasia,Stingray,0,Stingray,Rainbow Gardens,8/7,17.99 (Gift - Jared),Bedroom,Quarantine,,,FALSE
-,Alocasia,Dragons Breath,0,Claire,Cornelius,8/14,22.99,Front,Quarantine,,,FALSE
+,Alocasia,Zebrina,0,Tina,Rainbow Gardens,8/7,26.99 (Gift - Mom),Front,,,,FALSE
+,Alocasia,Stingray,0,Stingray,Rainbow Gardens,8/7,17.99 (Gift - Jared),Bedroom,,,,FALSE
+,Alocasia,Dragons Breath,0,Claire,Cornelius,8/14,22.99,Front,,,,FALSE
+,Alocasia,Dragons Breath,0,Baby Breath,Corm,9/13,Free,,,,,FALSE
 ,Alocasia,Alocasia baginda,0,Dragon Scale,Lowes,9/1,22,4,Quarantine,,,FALSE
-,Alocasia,Alocasia reginae,0,Regis,Lowes,9/1,8,4,Quarantine,,,FALSE
-,Alocasia,Alocasia × amazonica ‘Polly’,0,Bruce Wayne II,Lowes,9/1,8,4,Quarantine,,,FALSE
-,Alocasia,Mint Longiloba,0,PP Longstocking,Plant Swap,8/29,free,2,Recovery,,,FALSE
-,Alocasia,Venom,0,,Plant Swap,9/6,Free,3,,,,FALSE
+,Alocasia,Alocasia reginae,0,Regis,Lowes,9/1,8,4,Reset (Chop),,,FALSE
+,Alocasia,Alocasia × amazonica ‘Polly’,0,Bruce Wayne II,Lowes,9/1,4,,,,,FALSE
+,Alocasia,Alocasia × amazonica ‘Polly’,0,2 Corms,2 Corms,9/14,Free,,,,,FALSE
+,Alocasia,Mint Longiloba,0,PP Longstocking,Plant Swap,8/29,free,2,Reset (Corm),,,FALSE
+,Alocasia,Venom,0,Venom,Rainbow Gardens,9/6,42,,,,,FALSE
+,Alocasia,Polly,0,Big Polly,HEB,9/29,15,,,,,FALSE
+,Alocasia,Baginda,0,Silver Dragon,HEB,9/28,15,,,,,FALSE
+(blank),,,,,,,,,,,,
