@@ -37,6 +37,66 @@ function installColumnOrder(){
   window.__plantdexColumnOrderInstalled=true;
   reorderCollectionColumns();
 }
+
+// Click any data-column heading to alternate ascending and descending.
+// Sort only the displayed rows; never mutate cloud or local plant records.
+let columnSort={index:-1,direction:1};
+function applyColumnSort(){
+  const table=document.querySelector('.table-wrap table');
+  if(!table)return;
+  const heads=[...table.querySelectorAll('thead th')];
+  heads.forEach((th,i)=>{
+    if(i===0||i===1)return; // Favorite and photo are controls, not text fields.
+    th.classList.add('plantdex-sortable');
+    th.tabIndex=0;
+    th.setAttribute('role','button');
+    th.setAttribute('aria-label','Sort '+th.textContent.replace(/[↑↓]/g,'').trim());
+    th.setAttribute('aria-sort',columnSort.index===i?(columnSort.direction===1?'ascending':'descending'):'none');
+    let indicator=th.querySelector('.plantdex-sort-indicator');
+    if(!indicator){indicator=document.createElement('span');indicator.className='plantdex-sort-indicator';indicator.setAttribute('aria-hidden','true');th.appendChild(indicator);}
+    indicator.textContent=columnSort.index===i?(columnSort.direction===1?' ↑':' ↓'):' ↕';
+  });
+  if(columnSort.index<0)return;
+  const body=table.tBodies[0];if(!body)return;
+  const rows=[...body.rows];
+  const col=columnSort.index,dir=columnSort.direction;
+  const val=row=>(row.cells[col]?.textContent||'').trim();
+  rows.sort((a,b)=>{
+    const x=val(a),y=val(b);
+    if(!x)return y?1:0;
+    if(!y)return -1;
+    const nx=Number(x.replace(/[$,%]/g,'')),ny=Number(y.replace(/[$,%]/g,''));
+    const numeric=x.match(/^[$]?\\d+(?:\\.\\d+)?%?$/)&&y.match(/^[$]?\\d+(?:\\.\\d+)?%?$/);
+    const dx=Date.parse(x),dy=Date.parse(y);
+    const cmp=numeric?nx-ny:(/date|acquired|repot/i.test(heads[col]?.textContent||'')&&!isNaN(dx)&&!isNaN(dy)?dx-dy:x.localeCompare(y,undefined,{numeric:true,sensitivity:'base'}));
+    return dir*cmp;
+  });
+  rows.forEach(row=>body.appendChild(row));
+}
+function installColumnSort(){
+  if(window.__plantdexColumnSortInstalled)return;
+  const style=document.createElement('style');
+  style.textContent='.plantdex-sortable{cursor:pointer;user-select:none}.plantdex-sortable:hover{color:var(--green)}.plantdex-sortable:focus-visible{outline:2px solid var(--green);outline-offset:-2px}.plantdex-sort-indicator{font-size:.85em;white-space:nowrap;opacity:.8}';
+  document.head.appendChild(style);
+  const previousRender=window.render;
+  if(typeof previousRender==='function'){
+    window.render=function(){const result=previousRender.apply(this,arguments);applyColumnSort();return result;};
+  }
+  document.addEventListener('click',e=>{
+    const th=e.target.closest('.table-wrap thead th.plantdex-sortable');
+    if(!th)return;
+    const i=[...th.parentElement.children].indexOf(th);
+    columnSort={index:i,direction:columnSort.index===i?-columnSort.direction:1};
+    applyColumnSort();
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const th=e.target.closest('.table-wrap thead th.plantdex-sortable');
+    if(!th)return;e.preventDefault();th.click();
+  });
+  window.__plantdexColumnSortInstalled=true;
+  applyColumnSort();
+}
 function hidePriceColumn(){
   if(document.getElementById('plantdexHidePrice'))return;
   const style=document.createElement('style');
@@ -221,6 +281,7 @@ async function reconcile(force=false){
   hidePriceColumn();
   applyDarkTheme();
   installColumnOrder();
+  installColumnSort();
   makeNfcCollapsible();
   if(editorOpen()||busy||(!force&&Date.now()-lastRun<RECONCILE_INTERVAL))return;
   if(typeof plants==='undefined'||typeof render!=='function')return;
