@@ -80,6 +80,74 @@ body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;
 
     const cloudTag='<scr'+'ipt src="plantdex-cloud.js?v=egressfix-20260907"></scr'+'ipt><scr'+'ipt src="plantdex-reconcile.js?v=column-sort-init-20261011c"></scr'+'ipt>';
     html=html.replace('</body>',cloudTag+'\n</body>');
+
+    // Sorting controls are installed directly in the assembled page so they
+    // work independently of the optional cloud-reconciliation enhancements.
+    const sortScript = \`<script>
+(function(){
+  if(window.__plantdexNativeHeaderSort)return;
+  window.__plantdexNativeHeaderSort=true;
+  let active=-1, direction=1, lastHeader=null;
+  const style=document.createElement('style');
+  style.textContent='.table-wrap thead th.pdx-sort{cursor:pointer!important;user-select:none}.table-wrap thead th.pdx-sort:hover{color:#81c99a!important}.table-wrap thead th.pdx-sort:focus-visible{outline:2px solid #81c99a}.pdx-arrow{font-size:12px;margin-left:5px;opacity:.95}';
+  document.head.appendChild(style);
+  function headerIndex(th){return Array.prototype.indexOf.call(th.parentNode.children,th);}
+  function sortRows(){
+    const table=document.querySelector('.table-wrap table');
+    if(!table||active<0)return;
+    const body=table.tBodies[0];if(!body)return;
+    const h=table.tHead?.rows[0]?.cells[active];
+    const isDate=/date|acquired|repot/i.test(h?.textContent||'');
+    const value=row=>(row.cells[active]?.textContent||'').trim();
+    const rows=Array.from(body.rows);
+    rows.sort((a,b)=>{
+      const x=value(a),y=value(b);
+      if(!x||!y)return x? -1:y?1:0;
+      const nx=Number(x.replace(/[$,%]/g,'')),ny=Number(y.replace(/[$,%]/g,''));
+      let cmp;
+      if(isDate&&!isNaN(Date.parse(x))&&!isNaN(Date.parse(y)))cmp=Date.parse(x)-Date.parse(y);
+      else if(/^\$?\d+(\.\d+)?%?$/.test(x)&&/^\$?\d+(\.\d+)?%?$/.test(y))cmp=nx-ny;
+      else cmp=x.localeCompare(y,undefined,{numeric:true,sensitivity:'base'});
+      return direction*cmp;
+    });
+    rows.forEach(row=>body.appendChild(row));
+  }
+  function decorate(){
+    const table=document.querySelector('.table-wrap table');
+    const head=table?.tHead?.rows[0];
+    if(!head)return;
+    lastHeader=head;
+    Array.from(head.cells).forEach((th,i)=>{
+      if(i<2)return;
+      th.classList.add('pdx-sort');
+      th.tabIndex=0;
+      th.setAttribute('role','button');
+      th.setAttribute('aria-sort',active===i?(direction===1?'ascending':'descending'):'none');
+      let arrow=th.querySelector('.pdx-arrow');
+      if(!arrow){arrow=document.createElement('span');arrow.className='pdx-arrow';arrow.setAttribute('aria-hidden','true');th.appendChild(arrow);}
+      arrow.textContent=active===i?(direction===1?' ↑':' ↓'):' ↕';
+    });
+    sortRows();
+  }
+  document.addEventListener('click',e=>{
+    const th=e.target.closest('.table-wrap thead th.pdx-sort');
+    if(!th)return;
+    const i=headerIndex(th);
+    direction=active===i?-direction:1;active=i;decorate();
+  });
+  document.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&e.target.matches('.table-wrap thead th.pdx-sort')){e.preventDefault();e.target.click();}
+  });
+  const observer=new MutationObserver(()=>{
+    const head=document.querySelector('.table-wrap table thead tr');
+    if(head&&head!==lastHeader)decorate();
+  });
+  observer.observe(document.body,{childList:true,subtree:true});
+  decorate();
+})();
+<\/script>\`;
+    html=html.replace('</body>',sortScript+'</body>');
+
     document.open();document.write(html);document.close();
   }catch(err){
     document.body.innerHTML='<div class="loading"><div class="leaf">⚠️</div><strong>Plantdex could not load.</strong><p>'+String(err&&err.message||err)+'</p></div>';
