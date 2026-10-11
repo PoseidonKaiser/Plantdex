@@ -331,6 +331,7 @@ async function start(){
   hidePriceColumn();
   applyDarkTheme();
   installColumnOrder();
+  installColumnSort();
   const observer=new MutationObserver(()=>makeNfcCollapsible());
   observer.observe(document.body,{childList:true,subtree:true});
   for(let i=0;i<100&&!getAccessToken();i++)await sleep(100);
