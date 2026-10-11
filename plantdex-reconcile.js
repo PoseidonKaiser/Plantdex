@@ -66,7 +66,7 @@ function applyColumnSort(){
     if(!x)return y?1:0;
     if(!y)return -1;
     const nx=Number(x.replace(/[$,%]/g,'')),ny=Number(y.replace(/[$,%]/g,''));
-    const numeric=x.match(/^[$]?\\d+(?:\\.\\d+)?%?$/)&&y.match(/^[$]?\\d+(?:\\.\\d+)?%?$/);
+    const numeric=x.match(/^[$]?\d+(?:\.\d+)?%?$/)&&y.match(/^[$]?\d+(?:\.\d+)?%?$/);
     const dx=Date.parse(x),dy=Date.parse(y);
     const cmp=numeric?nx-ny:(/date|acquired|repot/i.test(heads[col]?.textContent||'')&&!isNaN(dx)&&!isNaN(dy)?dx-dy:x.localeCompare(y,undefined,{numeric:true,sensitivity:'base'}));
     return dir*cmp;
@@ -96,6 +96,12 @@ function installColumnSort(){
   });
   window.__plantdexColumnSortInstalled=true;
   applyColumnSort();
+  let lastHead=document.querySelector('.table-wrap thead tr');
+  const sortObserver=new MutationObserver(()=>{
+    const head=document.querySelector('.table-wrap thead tr');
+    if(head && head!==lastHead){lastHead=head;reorderCollectionColumns();applyColumnSort();}
+  });
+  sortObserver.observe(document.body,{childList:true,subtree:true});
 }
 function hidePriceColumn(){
   if(document.getElementById('plantdexHidePrice'))return;
