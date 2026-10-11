@@ -83,7 +83,7 @@ body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;
 
     // Sorting controls are installed directly in the assembled page so they
     // work independently of the optional cloud-reconciliation enhancements.
-    const sortScript = \`<script>
+    const sortScript = String.raw`<script>
 (function(){
   if(window.__plantdexNativeHeaderSort)return;
   window.__plantdexNativeHeaderSort=true;
@@ -145,7 +145,7 @@ body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0b120e;
   observer.observe(document.body,{childList:true,subtree:true});
   decorate();
 })();
-<\/script>\`;
+<\/script>`;
     html=html.replace('</body>',sortScript+'</body>');
 
     document.open();document.write(html);document.close();
